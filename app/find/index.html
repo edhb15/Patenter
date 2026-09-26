@@ -349,6 +349,29 @@
   </footer>
 
   <script>
+    // Patent search backend (backend/server.js). Needs an access
+    // token from the auth service, which the login page stores.
+    const SEARCH_API_URL = "http://localhost:3001/search";
+
+    // Everything from the backend (EPO data, AI summaries) is untrusted,
+    // so it must be escaped before it goes into innerHTML.
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    // Only allow links to Espacenet, never javascript: or other hosts.
+    function safeEspacenetLink(link) {
+      try {
+        const url = new URL(link);
+        if (url.protocol === "https:" && url.hostname === "worldwide.espacenet.com") {
+          return url.href;
+        }
+      } catch {}
+      return null;
+    }
+
     async function searchPatents() {
 
       const company =
@@ -373,20 +396,26 @@
         // backend is in:
         // /patenter/backend/server.js
 
-        // this assumes server runs on localhost:3000
+        // this assumes server runs on localhost:3001 (SEARCH_API_URL)
 
         const response = await fetch(
-          "http://localhost:3000/search",
+          SEARCH_API_URL,
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + (localStorage.getItem("accessToken") || "")
             },
             body: JSON.stringify({
               company
             })
           }
         );
+
+        if (response.status === 401) {
+          resultsDiv.innerHTML = `<div class="loading">Please sign in to search patents.</div>`;
+          return;
+        }
 
         const data = await response.json();
 const patents = data.patents;   // unwrap it
@@ -401,8 +430,8 @@ patents.forEach(patent => {
   const card = document.createElement("div");
   card.className = "patent-card";
   card.innerHTML = `
-    <h3>${patent.title}</h3>
-    <p>${patent.summary}</p>
+    <h3>${escapeHTML(patent.title)}</h3>
+    <p>${escapeHTML(patent.summary)}</p>
   `;
   card.onclick = () => openPatent(patent);
   resultsDiv.appendChild(card);
@@ -421,14 +450,15 @@ patents.forEach(patent => {
     }
     function openPatent(patent) {
   document.getElementById("modal").style.display = "flex";
+  const link = safeEspacenetLink(patent.link);
   document.getElementById("modalBody").innerHTML = `
-    <h2>${patent.title}</h2>
-    <p><strong>Patent Number:</strong> ${patent.patentNumber}</p>
-    <p><strong>Inventor:</strong> ${patent.inventor}</p>
-    <p><strong>Publication Date:</strong> ${patent.publicationDate}</p>
+    <h2>${escapeHTML(patent.title)}</h2>
+    <p><strong>Patent Number:</strong> ${escapeHTML(patent.patentNumber)}</p>
+    <p><strong>Inventor:</strong> ${escapeHTML(patent.inventor)}</p>
+    <p><strong>Publication Date:</strong> ${escapeHTML(patent.publicationDate)}</p>
     <h3>Summary</h3>
-    <p>${patent.summary}</p>
-    <p><a href="${patent.link}" target="_blank" rel="noopener">View full patent on Espacenet →</a></p>
+    <p>${escapeHTML(patent.summary)}</p>
+    ${link ? `<p><a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">View full patent on Espacenet →</a></p>` : ""}
   `;
 }
 

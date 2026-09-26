@@ -743,6 +743,10 @@
     toast('Document deleted');
   }
 
+  const INLINE_SAFE_TYPES = new Set([
+    'application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'text/plain',
+  ]);
+
   async function openDoc(id, download = false) {
     const doc = await docStore.get(id);
     if (doc && patenterIsEditorDoc(doc) && !download) {
@@ -751,6 +755,10 @@
     }
     const blob = doc && (doc.blob || (patenterIsEditorDoc(doc) ? editorDocToBlob(doc) : null));
     if (!blob) return toast('File not found in storage.', true);
+    // A blob: URL runs with this app's origin, so an uploaded HTML/SVG/XML
+    // file opened in a tab could read every stored document and token.
+    // Only open formats that can't run script; download everything else.
+    if (!download && !INLINE_SAFE_TYPES.has(blob.type)) download = true;
     const url = URL.createObjectURL(blob);
     if (download) {
       const a = document.createElement('a');

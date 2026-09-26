@@ -75,6 +75,7 @@ export const authService = {
       return {
         accessToken,
         refreshToken,
+        expiresAt,
       };
     },
     async refresh(refreshToken: string) {
@@ -94,21 +95,32 @@ export const authService = {
       }
     
       if (session.expiresAt < new Date()) {
+        await sessionRepository.deleteIfExists(session.id);
         throw new AppError(
           "Refresh token expired",
           401
         );
       }
-      await sessionRepository.delete(session.id);
 
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30);
+    // Rotate: the old token stops working and a brand-new one is issued.
+    // The session keeps its original expiry, so refreshing can't extend
+    // a (possibly stolen) session forever.
+    const newRefreshToken = refreshTokenUtils.generate();
 
-    await sessionRepository.create({
+    const rotated = await sessionRepository.rotate({
+      oldSessionId: session.id,
       userId: session.user.id,
-      refreshTokenHash,
-      expiresAt,
+      refreshTokenHash: refreshTokenUtils.hash(newRefreshToken),
+      expiresAt: session.expiresAt,
     });
+
+    // Another request already used this token.
+    if (!rotated) {
+      throw new AppError(
+        "Invalid refresh token",
+        401
+      );
+    }
 
     const accessToken = jwtUtils.signAccessToken({
       sub: session.user.id,
@@ -117,7 +129,8 @@ export const authService = {
 
     return {
       accessToken,
-      refreshToken,
+      refreshToken: newRefreshToken,
+      expiresAt: session.expiresAt,
     };
   },
   

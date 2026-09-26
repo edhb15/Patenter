@@ -19,7 +19,17 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+    // Never write access tokens or refresh cookies to the logs.
+    redact: [
+      "req.headers.authorization",
+      "req.headers.cookie",
+      'res.headers["set-cookie"]',
+    ],
+  })
+);
 
 app.get("/", (req, res) => {
   res.json({ message: "Secure Authentication API" });
