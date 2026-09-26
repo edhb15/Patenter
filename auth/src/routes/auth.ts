@@ -3,10 +3,11 @@ import { authService } from "../services/authService";
 import { AppError } from "../errors/AppError";
 import { authenticate } from "../middleware/auth";
 import { registerSchema, loginSchema } from "../schemas/auth";
+import { loginLimiter, registerLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 
-router.post("/register", async (req, res, next) => {
+router.post("/register", registerLimiter, async (req, res, next) => {
   try {
     const { email, password } = registerSchema.parse(req.body);
 
@@ -33,7 +34,7 @@ router.get("/me", authenticate, (req, res) => {
     });
   });
 
-  router.post("/login", async (req, res, next) => {
+  router.post("/login", loginLimiter, async (req, res, next) => {
     try {
       const result = await authService.login(req.body);
   
@@ -41,7 +42,7 @@ router.get("/me", authenticate, (req, res) => {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
+        expires: result.expiresAt,
       });
   
       return res.json({
@@ -60,14 +61,13 @@ router.get("/me", authenticate, (req, res) => {
         throw new AppError("Refresh token missing", 401);
       }
   
-      const accessToken = await authService.refresh(refreshToken);
       const result = await authService.refresh(refreshToken);
 
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
+        expires: result.expiresAt,
       });
   
       return res.json({
