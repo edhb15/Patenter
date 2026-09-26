@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Limits where scripts load from and where data can be sent. When deploying,
+       replace the localhost API origins in connect-src with the real ones. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Patenter</title>
   <link rel="icon" type="image/x-icon" href="/images-and-other-branding/SmallSquareLogoJpg.jpg">
@@ -333,13 +336,27 @@
       <a href="https://www.facebook.com/patenter" style="color:#00B4D8; text-decoration:none;">Social Media</a>
     </p>
   </footer>
+  <script src="shared/auth-client.js"></script>
   <script>
-    let logedin = localStorage.getItem("userLoggedIn");
-    if (logedin == "true"){
-      window.location.href = "/app/index.html"
+    // Already signed in (valid refresh cookie)? Go straight to the app.
+    PatenterAuth.getAccessToken().then(token => {
+      if (token) window.location.href = "/app/index.html";
+    });
+
+    function login() {
+      window.location.href = "login.html";
     }
     function pricing() {
-      window.location.href = "auth/index.html"
+      login();
+    }
+    function canvas() {
+      window.location.href = "login.html?next=" + encodeURIComponent("/app/ai/index.html");
+    }
+    function serch() {
+      window.location.href = "login.html?next=" + encodeURIComponent("/app/find/index.html");
+    }
+    function simulator() {
+      window.location.href = "login.html?next=" + encodeURIComponent("/app/editor/document.html");
     }
   </script>
 

@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Limits where scripts load from and where data can be sent. When deploying,
+     replace the localhost API origins in connect-src with the real ones. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Patenter AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans&display=swap" rel="stylesheet">
@@ -353,10 +356,12 @@ button:hover{
         integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL"
         crossorigin="anonymous"></script>
 
+<script src="../../shared/auth-client.js"></script>
+
 <script>
 // The OpenRouter key lives on the backend (backend/server.js /chat);
 // this page only sends the signed-in user's access token.
-const CHAT_API_URL = "http://localhost:3001/chat";
+PatenterAuth.requireSignIn();
 const chat = document.getElementById("chat");
 let lastAIHTML = "";
 let lastAIMarkdown = "";
@@ -399,19 +404,26 @@ async function getAIResponse(userMessage) {
 
 try {
 
-  const response = await fetch(CHAT_API_URL, {
+  const response = await PatenterAuth.apiFetch("/chat", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + (localStorage.getItem("accessToken") || "")
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({ message: userMessage })
   });
 
   if (response.status === 401) {
+    PatenterAuth.goToLogin();
     return {
       success: false,
       message: "Please sign in to use Patenter AI."
+    };
+  }
+
+  if (response.status === 429) {
+    return {
+      success: false,
+      message: "Too many requests. Please wait a few minutes."
     };
   }
 
@@ -574,6 +586,9 @@ if(result.success){
     result.message,
     "bot"
   );
+
+  // Only the answer itself goes to the editor, not the model header.
+  lastAIHTML = DOMPurify.sanitize(marked.parse(result.message));
 
 } else {
 
