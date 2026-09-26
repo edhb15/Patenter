@@ -27,11 +27,11 @@ export const env = {
   nodeEnv,
   isProduction,
 
-  // Browser origins allowed to call the API with credentials.
-  // Comma-separated, e.g. "http://localhost:5500,https://app.patenter.example".
-  // The page and the APIs must share a host name (localhost OR 127.0.0.1)
-  // or the SameSite=Strict refresh cookie is not sent.
-  allowedOrigins: (process.env.ALLOWED_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500")
+  // The frontend is normally served from the same origin (via the reverse
+  // proxy), so no cross-origin access is needed. List extra browser origins
+  // here only if the frontend is hosted elsewhere (comma-separated). The page
+  // and the API must share a site or the SameSite=Strict cookie is not sent.
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean),

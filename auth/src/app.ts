@@ -36,8 +36,8 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
-  res.json({ message: "Secure Authentication API" });
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
 });
 
 app.use("/auth", authRouter);

@@ -1,0 +1,30 @@
+# Everything is served from one origin, so the refresh cookie
+# (SameSite=Strict, path /auth) works and the pages' CSP only needs 'self'.
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# Auth service: its routes already live under /auth.
+	handle /auth/* {
+		reverse_proxy {$AUTH_UPSTREAM:auth:3000}
+	}
+
+	# Patenter API: /api/search -> backend /search.
+	handle_path /api/* {
+		reverse_proxy {$API_UPSTREAM:backend:3001}
+	}
+
+	handle {
+		root * /srv
+		file_server
+	}
+}

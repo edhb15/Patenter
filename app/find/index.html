@@ -4,9 +4,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Limits where scripts load from and where data can be sent. When deploying,
-       replace the localhost API origins in connect-src with the real ones. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <!-- Limits where scripts load from and where data can be sent. The APIs are
+     served from the same origin as the pages (see deploy/Caddyfile). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Patent Search | Patenter</title>
   <link rel="icon" type="image/x-icon" href="../../images-and-other-branding/SmallSquareLogoJpg.jpg">
