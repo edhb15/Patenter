@@ -1,17 +1,33 @@
+import crypto from "crypto";
 import { AppError } from "../errors/AppError";
+import { logger } from "../config/logger";
 import { userRepository } from "../users/UserRepository";
 import { passwordUtils } from "../utils/password";
 import { jwtUtils } from "../utils/jwt";
 import { refreshTokenUtils } from "../utils/refreshToken";
 import { sessionRepository } from "../sessions/SessionRepository";
 
-type RegisterInput = {
+type Credentials = {
   email: string;
   password: string;
 };
 
+const SESSION_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
+
+// A token used again within this window is treated as a harmless race
+// (e.g. two tabs refreshing at once), not as theft.
+const REUSE_GRACE_MS = 10 * 1000;
+
+// Verified when the email doesn't exist, so a login takes the same time
+// whether or not the account exists.
+const dummyHashPromise = passwordUtils.hash(crypto.randomBytes(32).toString("hex"));
+
+function invalidRefreshToken() {
+  return new AppError("Invalid refresh token", 401);
+}
+
 export const authService = {
-    async register({ email, password }: RegisterInput) {
+    async register({ email, password }: Credentials) {
   
       const existingUser = await userRepository.findByEmail(email);
       if (existingUser) {
@@ -31,41 +47,31 @@ export const authService = {
       };
     },
   
-    async login({ email, password }: RegisterInput) {
-      if (!email || !password) {
-        throw new AppError("Email and password are required", 400);
-      }
-  
+    async login({ email, password }: Credentials) {
       const user = await userRepository.findByEmail(email);
-  
-      // Don't reveal whether the email or password was wrong
-      if (!user) {
-        throw new AppError("Invalid email or password", 401);
-      }
-  
+
       const passwordMatches = await passwordUtils.verify(
-        user.passwordHash,
+        user ? user.passwordHash : await dummyHashPromise,
         password
       );
 
-      if (!passwordMatches) {
+      // Don't reveal whether the email or password was wrong
+      if (!user || !passwordMatches) {
         throw new AppError("Invalid email or password", 401);
       }
 
+      await sessionRepository.deleteExpiredForUser(user.id);
+
       const refreshToken = refreshTokenUtils.generate();
 
-      const refreshTokenHash = refreshTokenUtils.hash(refreshToken);
-
-      const expiresAt = new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000
-      );
+      const expiresAt = new Date(Date.now() + SESSION_LIFETIME_MS);
 
       await sessionRepository.create({
         userId: user.id,
-        refreshTokenHash,
+        familyId: crypto.randomUUID(),
+        refreshTokenHash: refreshTokenUtils.hash(refreshToken),
         expiresAt,
       });
-
   
       const accessToken = jwtUtils.signAccessToken({
         sub: user.id,
@@ -78,24 +84,32 @@ export const authService = {
         expiresAt,
       };
     },
+
     async refresh(refreshToken: string) {
-      const refreshTokenHash =
-        refreshTokenUtils.hash(refreshToken);
-    
       const session =
         await sessionRepository.findByRefreshTokenHash(
-          refreshTokenHash
+          refreshTokenUtils.hash(refreshToken)
         );
     
       if (!session) {
-        throw new AppError(
-          "Invalid refresh token",
-          401
-        );
+        throw invalidRefreshToken();
+      }
+
+      if (session.revokedAt) {
+        // An already-rotated token came back. Outside the short race
+        // window that means someone else has a copy: end the whole login.
+        if (Date.now() - session.revokedAt.getTime() > REUSE_GRACE_MS) {
+          logger.warn(
+            { userId: session.userId, familyId: session.familyId },
+            "Refresh token reuse detected, revoking session family"
+          );
+          await sessionRepository.deleteFamily(session.familyId);
+        }
+        throw invalidRefreshToken();
       }
     
       if (session.expiresAt < new Date()) {
-        await sessionRepository.deleteIfExists(session.id);
+        await sessionRepository.deleteFamily(session.familyId);
         throw new AppError(
           "Refresh token expired",
           401
@@ -110,16 +124,14 @@ export const authService = {
     const rotated = await sessionRepository.rotate({
       oldSessionId: session.id,
       userId: session.user.id,
+      familyId: session.familyId,
       refreshTokenHash: refreshTokenUtils.hash(newRefreshToken),
       expiresAt: session.expiresAt,
     });
 
     // Another request already used this token.
     if (!rotated) {
-      throw new AppError(
-        "Invalid refresh token",
-        401
-      );
+      throw invalidRefreshToken();
     }
 
     const accessToken = jwtUtils.signAccessToken({
@@ -135,18 +147,20 @@ export const authService = {
   },
   
   async logout(refreshToken: string) {
-    const refreshTokenHash =
-      refreshTokenUtils.hash(refreshToken);
-  
     const session =
       await sessionRepository.findByRefreshTokenHash(
-        refreshTokenHash
+        refreshTokenUtils.hash(refreshToken)
       );
   
     if (!session) {
       return;
     }
   
-    await sessionRepository.delete(session.id);
-  }
+    await sessionRepository.deleteFamily(session.familyId);
+  },
+
+  // Signs the user out on every device.
+  async logoutAll(userId: string) {
+    await sessionRepository.deleteAllForUser(userId);
+  },
 };

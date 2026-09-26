@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 export const sessionRepository = {
   async create(data: {
     userId: string;
+    familyId: string;
     refreshTokenHash: string;
     expiresAt: Date;
   }) {
@@ -12,7 +13,7 @@ export const sessionRepository = {
   },
 
   async findByRefreshTokenHash(refreshTokenHash: string) {
-    return prisma.session.findFirst({
+    return prisma.session.findUnique({
       where: {
         refreshTokenHash,
       },
@@ -21,35 +22,25 @@ export const sessionRepository = {
       },
     });
   },
-  async delete(id: string) {
-    return prisma.session.delete({
-      where: {
-        id,
-      },
-    });
-  },
 
-  async deleteIfExists(id: string) {
-    return prisma.session.deleteMany({
-      where: {
-        id,
-      },
-    });
-  },
-
-  // Deletes the old session and creates its replacement atomically.
-  // Returns null if the old session was already gone (token reused
-  // or a concurrent refresh won the race).
+  // Marks the old session as used and creates its replacement atomically.
+  // Returns null if the old session was already used (a concurrent
+  // refresh won the race), so only one caller gets a new token.
   async rotate(data: {
     oldSessionId: string;
     userId: string;
+    familyId: string;
     refreshTokenHash: string;
     expiresAt: Date;
   }) {
     return prisma.$transaction(async (tx) => {
-      const { count } = await tx.session.deleteMany({
+      const { count } = await tx.session.updateMany({
         where: {
           id: data.oldSessionId,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
         },
       });
 
@@ -60,10 +51,38 @@ export const sessionRepository = {
       return tx.session.create({
         data: {
           userId: data.userId,
+          familyId: data.familyId,
           refreshTokenHash: data.refreshTokenHash,
           expiresAt: data.expiresAt,
         },
       });
+    });
+  },
+
+  async deleteFamily(familyId: string) {
+    return prisma.session.deleteMany({
+      where: {
+        familyId,
+      },
+    });
+  },
+
+  async deleteAllForUser(userId: string) {
+    return prisma.session.deleteMany({
+      where: {
+        userId,
+      },
+    });
+  },
+
+  async deleteExpiredForUser(userId: string) {
+    return prisma.session.deleteMany({
+      where: {
+        userId,
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
     });
   },
 };

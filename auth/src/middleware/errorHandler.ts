@@ -47,6 +47,15 @@ export function errorHandler(
     });
   }
 
+  // Client errors raised by Express itself, e.g. malformed JSON (400)
+  // or a body over the size limit (413).
+  const status = (err as { status?: unknown })?.status;
+  if (typeof status === "number" && status >= 400 && status < 500) {
+    return res.status(status).json({
+      error: status === 413 ? "Request body too large" : "Invalid request",
+    });
+  }
+
   // Unexpected / programmer errors
   logger.error(
     {

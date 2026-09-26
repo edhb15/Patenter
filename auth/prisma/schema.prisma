@@ -16,10 +16,17 @@ model User {
 }
 
 model Session {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
-  refreshTokenHash String
+  refreshTokenHash String    @unique
+  // All sessions created by rotating one login share a family, so a
+  // reused (stolen) refresh token can revoke the whole chain.
+  familyId         String
+  revokedAt        DateTime?
   expiresAt        DateTime
-  createdAt        DateTime @default(now())
-  user             User     @relation(fields: [userId], references: [id])
+  createdAt        DateTime  @default(now())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
 }

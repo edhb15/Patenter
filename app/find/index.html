@@ -4,6 +4,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Limits where scripts load from and where data can be sent. When deploying,
+       replace the localhost API origins in connect-src with the real ones. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Patent Search | Patenter</title>
   <link rel="icon" type="image/x-icon" href="../../images-and-other-branding/SmallSquareLogoJpg.jpg">
@@ -348,10 +351,10 @@
     </p>
   </footer>
 
+  <script src="../../shared/auth-client.js"></script>
   <script>
-    // Patent search backend (backend/server.js). Needs an access
-    // token from the auth service, which the login page stores.
-    const SEARCH_API_URL = "http://localhost:3001/search";
+    // Patent search runs on backend/server.js and needs a signed-in user.
+    PatenterAuth.requireSignIn();
 
     // Everything from the backend (EPO data, AI summaries) is untrusted,
     // so it must be escaped before it goes into innerHTML.
@@ -392,19 +395,13 @@
 
       try {
 
-        // IMPORTANT:
-        // backend is in:
-        // /patenter/backend/server.js
 
-        // this assumes server runs on localhost:3001 (SEARCH_API_URL)
-
-        const response = await fetch(
-          SEARCH_API_URL,
+        const response = await PatenterAuth.apiFetch(
+          "/search",
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + (localStorage.getItem("accessToken") || "")
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
               company
@@ -413,7 +410,14 @@
         );
 
         if (response.status === 401) {
-          resultsDiv.innerHTML = `<div class="loading">Please sign in to search patents.</div>`;
+          PatenterAuth.goToLogin();
+          return;
+        }
+
+        if (!response.ok) {
+          resultsDiv.innerHTML = response.status === 429
+            ? `<div class="loading">Too many searches. Please wait a few minutes.</div>`
+            : `<div class="loading">Error fetching patents.</div>`;
           return;
         }
 

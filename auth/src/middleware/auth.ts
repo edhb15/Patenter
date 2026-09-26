@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 import { AppError } from "../errors/AppError";
 import { jwtUtils } from "../utils/jwt";
 import { userRepository } from "../users/UserRepository";
@@ -18,27 +19,30 @@ export async function authenticate(
     throw new AppError("Invalid authorization header", 401);
   }
 
-  const token = authHeader.slice(7);
+  let payload;
 
   try {
-    const payload = jwtUtils.verifyAccessToken(token) as {
-      sub: string;
-      email: string;
-    };
-
-    const user = await userRepository.findById(payload.sub);
-
-    if (!user) {
-        throw new AppError("Unauthorized", 401);
+    payload = jwtUtils.verifyAccessToken(authHeader.slice(7));
+  } catch (err) {
+    if (err instanceof jwt.JsonWebTokenError) {
+      // Also covers TokenExpiredError / NotBeforeError (subclasses).
+      throw new AppError("Invalid or expired token", 401);
     }
-
-    req.user = {
-        id: user.id,
-        email: user.email,
-      };
-
-    next();
-  } catch {
-    throw new AppError("Invalid or expired token", 401);
+    throw err;
   }
+
+  // Database errors are deliberately not caught here: they should surface
+  // as a 500 (and be logged), not look like the user's token was bad.
+  const user = await userRepository.findById(payload.sub);
+
+  if (!user) {
+    throw new AppError("Unauthorized", 401);
+  }
+
+  req.user = {
+    id: user.id,
+    email: user.email,
+  };
+
+  next();
 }

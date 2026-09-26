@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Limits where scripts load from and where data can be sent. When deploying,
+     replace the localhost API origins in connect-src with the real ones. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Patenter — Sign in</title>
-<link rel="icon" type="image/x-icon" href="/images-and-other-branding/SmallSquareLogoJpg.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -36,8 +38,7 @@
   h1,h2,h3{ font-family:var(--font-display); margin:0; }
   button{ font-family:inherit; }
   a{ color:var(--brand-deep); }
-  .screen{ min-height:100vh; }
-  .screen[hidden]{ display:none; }
+  main[hidden]{ display:none; }
 
   /* ---------- Auth screen layout ---------- */
   .app-shell{
@@ -82,49 +83,6 @@
     color:var(--muted);
     font-size:14.5px;
     margin:0;
-  }
-  .docket{ max-width:380px; }
-  .docket-title{
-    font-family:var(--font-mono);
-    font-size:11px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--muted);
-    margin:0 0 10px;
-    padding-bottom:8px;
-    border-bottom:1px solid var(--line);
-  }
-  .docket-list{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-direction:column;
-    gap:7px;
-    font-family:var(--font-mono);
-    font-size:12px;
-    max-height:220px;
-    overflow-y:auto;
-  }
-  .docket-list li{
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-    color:var(--ink);
-    border-bottom:1px dashed var(--line);
-    padding-bottom:7px;
-  }
-  .docket-list .t{ color:var(--muted); flex-shrink:0; }
-  .docket-list .m{ font-weight:500; flex-shrink:0; }
-  .docket-list .p{ color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .docket-list .s{ margin-left:auto; flex-shrink:0; font-weight:500; }
-  .docket-list .s.ok{ color:var(--brand-deep); }
-  .docket-list .s.err{ color:var(--stamp); }
-  .docket-empty{
-    font-family:var(--font-mono);
-    font-size:12px;
-    color:var(--muted);
-    padding:8px 0 0;
   }
 
   .auth-card-wrap{
@@ -246,106 +204,6 @@
   }
   .security-note svg{ flex-shrink:0; margin-top:2px; }
 
-  /* ---------- Dashboard screen ---------- */
-  .dashboard-shell{
-    max-width:960px;
-    margin:0 auto;
-    padding:44px 32px 64px;
-  }
-  .dash-topline{ display:flex; align-items:center; gap:10px; margin-bottom:40px; }
-  .dash-topline img{ height:30px; }
-  .dashboard-grid{
-    display:grid;
-    grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
-    gap:32px;
-    align-items:start;
-  }
-  .cert-card{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:4px;
-    padding:40px;
-    position:relative;
-    overflow:hidden;
-  }
-  .stamp{
-    display:inline-block;
-    border:2.5px solid var(--stamp);
-    color:var(--stamp);
-    font-family:var(--font-display);
-    font-weight:700;
-    font-size:13px;
-    letter-spacing:.12em;
-    padding:7px 14px;
-    border-radius:2px;
-    transform:rotate(-6deg) scale(1);
-    transform-origin:left top;
-    animation:stampIn .35s ease-out;
-  }
-  @keyframes stampIn{
-    0%{ transform:rotate(-6deg) scale(2.2); opacity:0; }
-    60%{ opacity:1; }
-    100%{ transform:rotate(-6deg) scale(1); opacity:1; }
-  }
-  .cert-field{ margin-top:26px; }
-  .cert-field .k{
-    font-family:var(--font-mono);
-    font-size:11px;
-    letter-spacing:.1em;
-    text-transform:uppercase;
-    color:var(--muted);
-    margin:0 0 4px;
-  }
-  .cert-field .v{
-    font-size:19px;
-    font-weight:500;
-    font-family:var(--font-display);
-    word-break:break-word;
-  }
-  .cert-field .v.mono{ font-family:var(--font-mono); font-size:14px; font-weight:400; }
-  .copy-btn{
-    background:none; border:none; cursor:pointer; color:var(--muted);
-    font-family:var(--font-mono); font-size:11px; margin-left:8px; text-decoration:underline;
-  }
-  .copy-btn:hover{ color:var(--ink); }
-  .session-note{
-    margin-top:26px;
-    padding-top:20px;
-    border-top:1px solid var(--line);
-    font-size:13px;
-    color:var(--muted);
-  }
-  .token-row{
-    display:flex; align-items:center; gap:10px; margin-top:14px;
-    font-family:var(--font-mono); font-size:12px; color:var(--muted);
-  }
-  .token-row button{
-    background:none; border:1px solid var(--line-strong); border-radius:3px;
-    padding:4px 10px; cursor:pointer; color:var(--ink); font-family:var(--font-mono); font-size:11.5px;
-  }
-  .token-row button:hover{ border-color:var(--brand); color:var(--brand-deep); }
-  .logout-btn{
-    margin-top:32px;
-    background:none;
-    border:1.5px solid var(--ink);
-    color:var(--ink);
-    border-radius:3px;
-    padding:11px 18px;
-    font-family:var(--font-display);
-    font-weight:600;
-    font-size:14px;
-    cursor:pointer;
-  }
-  .logout-btn:hover{ background:var(--ink); color:#fff; }
-
-  .docket--dashboard{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:4px;
-    padding:24px;
-  }
-  .docket--dashboard .docket-list{ max-height:340px; }
-
   :focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
 
   @media (max-width:880px){
@@ -353,7 +211,6 @@
     .hero{ border-right:none; border-top:1px solid var(--line); padding:32px 24px; }
     .hero-illustration, .hero-copy{ display:none; }
     .auth-card-wrap{ padding:40px 24px 16px; }
-    .dashboard-grid{ grid-template-columns:1fr; }
   }
   @media (prefers-reduced-motion:reduce){
     *{ animation:none !important; transition:none !important; }
@@ -363,7 +220,9 @@
 <body>
 
 <!-- ===================== AUTH SCREEN ===================== -->
-<main id="screen-auth" class="screen">
+<!-- Starts hidden: if a valid session already exists we redirect straight
+     to the app without ever flashing the login form. -->
+<main id="screen-auth" hidden>
   <div class="app-shell">
 
     <section class="hero">
@@ -415,17 +274,11 @@
         <h1>Every idea starts&nbsp;with a secure filing.</h1>
         <p>Sign in to draft, manage and track your patent applications. Your session is protected by a short-lived access token and a rotating, HTTP-only refresh cookie that this page never touches directly.</p>
       </div>
-
-      <div class="docket">
-        <p class="docket-title">Docket — live API calls</p>
-        <p class="docket-empty" data-empty-state>No requests yet. Sign in or create an account to see the calls to your backend appear here.</p>
-        <ol class="docket-list" data-docket-list></ol>
-      </div>
     </section>
 
     <div class="auth-card-wrap">
       <div class="auth-card">
-        <img class="card-logo" src="LOGO_BASE64_PLACEHOLDER" alt="Patenter">
+        <img class="card-logo" src="images-and-other-branding/logo-no-backround.png" alt="Patenter">
 
         <div class="tabs" id="tabs">
           <div class="tabs-indicator"></div>
@@ -493,184 +346,44 @@
   </div>
 </main>
 
-<!-- ===================== DASHBOARD SCREEN ===================== -->
-<main id="screen-dashboard" class="screen" hidden>
-  <div class="dashboard-shell">
-    <div class="dash-topline">
-      <img src="LOGO_BASE64_PLACEHOLDER" alt="Patenter">
-    </div>
-
-    <div class="dashboard-grid">
-      <section class="cert-card">
-        <div class="stamp" id="stamp">AUTHENTICATED</div>
-
-        <div class="cert-field">
-          <p class="k">Applicant</p>
-          <p class="v" id="dash-email">—</p>
-        </div>
-        <div class="cert-field">
-          <p class="k">Applicant ID</p>
-          <p class="v mono" id="dash-id">—<button class="copy-btn" id="copy-id-btn" type="button">copy</button></p>
-        </div>
-
-        <div class="session-note">
-          Your access token lives in this browser's local storage and is short-lived by design. When it expires, this page calls <code>/auth/refresh</code> automatically using your refresh cookie and retries the request — you never notice the gap.
-          <div class="token-row">
-            <span>token: <span id="token-preview">—</span></span>
-            <button type="button" id="refresh-now-btn">Refresh now</button>
-          </div>
-        </div>
-
-        <button class="logout-btn" id="logout-btn">Log out</button>
-      </section>
-
-      <section class="docket docket--dashboard">
-        <p class="docket-title">Docket — live API calls</p>
-        <p class="docket-empty" data-empty-state>Nothing logged yet.</p>
-        <ol class="docket-list" data-docket-list></ol>
-      </section>
-    </div>
-  </div>
-</main>
-
+<script src="shared/auth-client.js"></script>
 <script>
 (function(){
   "use strict";
 
-  // ---- Configuration ---------------------------------------------------
-  // If your backend is served from a different origin than this page,
-  // set the full origin here, e.g. 'https://api.patenter.app'.
-  // Whatever you use, the backend must send:
-  //   Access-Control-Allow-Origin: <this page's exact origin>  (not '*')
-  //   Access-Control-Allow-Credentials: true
-  // or the browser will silently drop the refresh-token cookie.
-  const API_BASE_URL = 'http://localhost:3000';
+  // Session handling lives in shared/auth-client.js (window.PatenterAuth).
+  const Auth = window.PatenterAuth;
+
+  // Where to send the user once they're authenticated: the page that sent
+  // them here (same site only), otherwise the app home.
+  const APP_URL = Auth.safeNextPath(new URLSearchParams(location.search).get('next')) || '/app/index.html';
 
   // ---- Small helpers -----------------------------------------------------
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
-  function getToken(){ return localStorage.getItem('accessToken'); }
-  function setToken(t){ localStorage.setItem('accessToken', t); }
-  function clearToken(){ localStorage.removeItem('accessToken'); }
-
-  // ---- Docket log (renders into every [data-docket-list] on the page) ----
-  const docketEntries = [];
-  function timeNow(){
-    const d = new Date();
-    return d.toTimeString().slice(0,8);
-  }
-  function logEntry(method, path, status, ok){
-    docketEntries.unshift({ time: timeNow(), method, path, status, ok });
-    if (docketEntries.length > 10) docketEntries.length = 10;
-    renderDocket();
-  }
-  function renderDocket(){
-    $$('[data-docket-list]').forEach(list => {
-      list.innerHTML = docketEntries.map(e => (
-        '<li>' +
-          '<span class="t">' + e.time + '</span>' +
-          '<span class="m">' + e.method + '</span>' +
-          '<span class="p">' + e.path + '</span>' +
-          '<span class="s ' + (e.ok ? 'ok' : 'err') + '">' + e.status + '</span>' +
-        '</li>'
-      )).join('');
-    });
-    $$('[data-empty-state]').forEach(el => {
-      el.style.display = docketEntries.length ? 'none' : '';
-    });
-  }
-
-  // ---- Core request wrapper ----------------------------------------------
-  // Every call to the backend goes through here so the docket log always
-  // reflects exactly what this page sent to your API.
-  async function apiRequest(method, path, { body, token, credentials } = {}){
-    const headers = {};
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-
-    let res;
-    try{
-      res = await fetch(API_BASE_URL + path, {
-        method,
-        headers,
-        credentials: credentials ? 'include' : 'same-origin',
-        body: body !== undefined ? JSON.stringify(body) : undefined
-      });
-    } catch (networkErr){
-      logEntry(method, path, 'ERR', false);
-      return { ok:false, networkError:true, status:0, data:null };
-    }
-
-    let data = null;
-    try { data = await res.json(); } catch(_) { /* no/invalid JSON body */ }
-
-    logEntry(method, path, res.status, res.ok);
-    return { ok: res.ok, status: res.status, data, networkError:false };
-  }
-
   function defaultMessage(status){
     if (status === 400) return 'Check the details you entered and try again.';
     if (status === 401) return 'Incorrect email or password.';
-    if (status === 404) return 'That endpoint could not be found. Check API_BASE_URL.';
     if (status === 409) return 'An account with this email already exists.';
+    if (status === 429) return 'Too many attempts. Wait a few minutes and try again.';
     if (status >= 500) return 'The server hit an error. Try again shortly.';
     return 'Request failed (status ' + status + ').';
   }
   function messageFor(result){
-    if (result.networkError) return "Couldn't reach the server. Check that the API is running and that CORS/credentials are configured for this origin.";
+    if (result.networkError) return "Couldn't reach the server. Check that the auth service is running.";
     return (result.data && (result.data.message || result.data.error)) || defaultMessage(result.status);
   }
 
-  // ---- Auth actions --------------------------------------------------------
-  function register(email, password){
-    return apiRequest('POST', '/auth/register', { body: { email, password } });
-  }
+  const login = Auth.login;
+  const register = Auth.register;
 
-  async function login(email, password){
-    const result = await apiRequest('POST', '/auth/login', { body: { email, password }, credentials: true });
-    if (result.ok && result.data && result.data.accessToken){
-      setToken(result.data.accessToken);
-    }
-    return result;
-  }
-
-  function getMe(token){
-    return apiRequest('GET', '/auth/me', { token });
-  }
-
-  async function refresh(){
-    const result = await apiRequest('POST', '/auth/refresh', { credentials: true });
-    if (result.ok && result.data && result.data.accessToken){
-      setToken(result.data.accessToken);
-    } else {
-      clearToken();
-    }
-    return result;
-  }
-
-  async function logout(){
-    await apiRequest('POST', '/auth/logout', { credentials: true });
-    clearToken();
-  }
-
-  // Implements: try /auth/me -> on 401, refresh -> retry /auth/me once.
-  async function loadMeWithRefresh(){
-    let token = getToken();
-    if (!token) return { ok:false };
-
-    let result = await getMe(token);
-    if (result.status === 401){
-      const refreshed = await refresh();
-      if (!refreshed.ok) return { ok:false };
-      result = await getMe(getToken());
-    }
-    return result;
+  function goToApp(){
+    window.location.href = APP_URL;
   }
 
   // ---- View plumbing -------------------------------------------------------
   const screenAuth = $('#screen-auth');
-  const screenDashboard = $('#screen-dashboard');
   const tabs = $('#tabs');
   const tabLoginBtn = $('#tab-login-btn');
   const tabRegisterBtn = $('#tab-register-btn');
@@ -696,19 +409,6 @@
   tabLoginBtn.addEventListener('click', () => setAuthTab('login'));
   tabRegisterBtn.addEventListener('click', () => setAuthTab('register'));
   $('#switch-to-register').addEventListener('click', () => setAuthTab('register'));
-
-  function showScreen(name){
-    location.href = "/app/index.html";
-    const dash = name === 'dashboard';
-    screenAuth.hidden = dash;
-    screenDashboard.hidden = !dash;
-    if (dash){
-      const stamp = $('#stamp');
-      stamp.style.animation = 'none';
-      void stamp.offsetWidth;
-      stamp.style.animation = '';
-    }
-  }
 
   // Password show/hide toggles
   $$('.pw-toggle').forEach(btn => {
@@ -736,21 +436,14 @@
     const result = await login(email, password);
 
     if (result.ok){
-      msg.textContent = '';
-      const me = await loadMeWithRefresh();
-      if (me.ok){
-        renderDashboard(me.data);
-        showScreen('dashboard');
-        formLogin.reset();
-      } else {
-        msg.className = 'form-msg err';
-        msg.textContent = "Signed in, but couldn't load your profile. Try again.";
-      }
-    } else {
-      msg.className = 'form-msg err';
-      msg.textContent = messageFor(result);
+      // Successful login = automatically authenticated. Head straight
+      // into the app rather than showing anything in this page.
+      goToApp();
+      return;
     }
 
+    msg.className = 'form-msg err';
+    msg.textContent = messageFor(result);
     submitBtn.disabled = false;
     submitBtn.textContent = 'Sign in';
   });
@@ -794,65 +487,14 @@
     submitBtn.textContent = 'Create account';
   });
 
-  // ---- Dashboard rendering -------------------------------------------------
-  function renderDashboard(user){
-    $('#dash-email').textContent = (user && user.email) || '—';
-    $('#dash-id').firstChild.textContent = (user && user.id) || '—';
-    updateTokenPreview();
-  }
-  function updateTokenPreview(){
-    const t = getToken() || '';
-    $('#token-preview').textContent = t ? (t.slice(0,10) + '…' + t.slice(-6)) : '—';
-  }
-
-  $('#copy-id-btn').addEventListener('click', async () => {
-    const id = $('#dash-id').firstChild.textContent;
-    try{
-      await navigator.clipboard.writeText(id);
-      const btn = $('#copy-id-btn');
-      const original = btn.textContent;
-      btn.textContent = 'copied';
-      setTimeout(() => { btn.textContent = original; }, 1200);
-    } catch(_) { /* clipboard unavailable, ignore */ }
-  });
-
-  $('#refresh-now-btn').addEventListener('click', async () => {
-    const btn = $('#refresh-now-btn');
-    btn.disabled = true;
-    const result = await refresh();
-    if (!result.ok){
-      showScreen('auth');
-      setAuthTab('login');
-      $('#login-msg').className = 'form-msg err';
-      $('#login-msg').textContent = 'Your session expired. Sign in again.';
-    } else {
-      updateTokenPreview();
-    }
-    btn.disabled = false;
-  });
-
-  $('#logout-btn').addEventListener('click', async () => {
-    const btn = $('#logout-btn');
-    btn.disabled = true;
-    await logout();
-    showScreen('auth');
-    setAuthTab('login');
-    btn.disabled = false;
-  });
-
   // ---- Boot -----------------------------------------------------------
+  // If a valid session already exists, skip the form entirely and go
+  // straight to the app. Otherwise reveal the login form.
   (async function init(){
-    renderDocket();
-    if (!getToken()){
-      showScreen('auth');
-      return;
-    }
-    const me = await loadMeWithRefresh();
-    if (me.ok){
-      renderDashboard(me.data);
-      showScreen('dashboard');
+    if (await Auth.getAccessToken()){
+      goToApp();
     } else {
-      showScreen('auth');
+      screenAuth.hidden = false;
     }
   })();
 
