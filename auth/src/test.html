@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patenter — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10182B;
+    --paper:#F5F7FA;
+    --surface:#FFFFFF;
+    --brand:#1699EB;
+    --brand-deep:#0B6FB0;
+    --line:#DDE1E8;
+    --line-strong:#B7C0CC;
+    --muted:#667085;
+    --stamp:#B3392F;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'IBM Plex Sans', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  h1,h2,h3{ font-family:var(--font-display); margin:0; }
+  button{ font-family:inherit; }
+  a{ color:var(--brand-deep); }
+  main[hidden]{ display:none; }
+
+  /* ---------- Auth screen layout ---------- */
+  .app-shell{
+    display:grid;
+    grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+    grid-template-areas:"hero auth";
+    min-height:100vh;
+  }
+  .hero{
+    grid-area:hero;
+    background:
+      radial-gradient(var(--line) 1px, transparent 1px);
+    background-size:22px 22px;
+    background-color:var(--surface);
+    border-right:1px solid var(--line);
+    padding:56px 48px;
+    display:flex;
+    flex-direction:column;
+    gap:36px;
+  }
+  .hero-illustration{
+    position:relative;
+    max-width:380px;
+  }
+  .hero-illustration svg{ width:100%; height:auto; display:block; }
+  .hero-copy{ max-width:360px; }
+  .hero-eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  .hero-copy h1{
+    font-size:26px;
+    font-weight:600;
+    line-height:1.25;
+    margin-bottom:12px;
+  }
+  .hero-copy p{
+    color:var(--muted);
+    font-size:14.5px;
+    margin:0;
+  }
+
+  .auth-card-wrap{
+    grid-area:auth;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 32px;
+  }
+  .auth-card{ width:100%; max-width:360px; }
+  .auth-card .card-logo{ height:56px; display:block; margin:0 0 28px; }
+
+  .tabs{
+    position:relative;
+    display:flex;
+    border-bottom:1px solid var(--line);
+    margin-bottom:28px;
+  }
+  .tab-btn{
+    flex:1;
+    background:none;
+    border:none;
+    padding:0 0 12px;
+    font-family:var(--font-display);
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .tab-btn.is-active{ color:var(--ink); }
+  .tabs-indicator{
+    position:absolute;
+    bottom:-1px;
+    left:0;
+    width:50%;
+    height:2px;
+    background:var(--brand);
+    transition:transform .25s ease;
+  }
+  .tabs.on-register .tabs-indicator{ transform:translateX(100%); }
+
+  .auth-form{ display:flex; flex-direction:column; gap:20px; }
+  .auth-form[hidden]{ display:none; }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field label{
+    font-size:12px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .field-input{ position:relative; }
+  .field input{
+    width:100%;
+    border:none;
+    border-bottom:1.5px solid var(--line-strong);
+    background:transparent;
+    padding:8px 2px;
+    font-family:var(--font-body);
+    font-size:15px;
+    color:var(--ink);
+    outline:none;
+  }
+  .field input:focus{ border-bottom-color:var(--brand); }
+  .field input.has-toggle{ padding-right:34px; }
+  .pw-toggle{
+    position:absolute;
+    right:0;
+    top:50%;
+    transform:translateY(-50%);
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--muted);
+    padding:4px;
+    display:flex;
+  }
+  .pw-toggle:hover{ color:var(--ink); }
+
+  .submit-btn{
+    margin-top:6px;
+    background:var(--brand-deep);
+    color:#fff;
+    border:none;
+    border-radius:3px;
+    padding:12px 16px;
+    font-size:14.5px;
+    font-weight:600;
+    font-family:var(--font-display);
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  .submit-btn:hover{ background:#095b93; }
+  .submit-btn:disabled{ opacity:.6; cursor:default; }
+
+  .form-msg{ font-size:13px; margin:0; min-height:18px; }
+  .form-msg.err{ color:var(--stamp); }
+  .form-msg.ok{ color:var(--brand-deep); }
+
+  .switch-line{
+    font-size:13.5px;
+    color:var(--muted);
+    margin:22px 0 0;
+    text-align:center;
+  }
+  .switch-line button{
+    background:none; border:none; padding:0; cursor:pointer;
+    color:var(--brand-deep); font-weight:600; text-decoration:underline;
+  }
+
+  .security-note{
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    margin-top:26px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .security-note svg{ flex-shrink:0; margin-top:2px; }
+
+  :focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+
+  @media (max-width:880px){
+    .app-shell{ grid-template-columns:1fr; grid-template-areas:"auth" "hero"; }
+    .hero{ border-right:none; border-top:1px solid var(--line); padding:32px 24px; }
+    .hero-illustration, .hero-copy{ display:none; }
+    .auth-card-wrap{ padding:40px 24px 16px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== AUTH SCREEN ===================== -->
+<!-- Starts hidden: if a valid session already exists we redirect straight
+     to the app without ever flashing the login form. -->
+<main id="screen-auth" hidden>
+  <div class="app-shell">
+
+    <section class="hero">
+      <div class="hero-illustration" aria-hidden="true">
+        <svg viewBox="0 0 380 440" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="var(--line-strong)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect x="10" y="10" width="360" height="420" fill="none" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="1 5"/>
+          <path d="M20 10 h14 M10 20 v14" fill="none" stroke="var(--line-strong)" stroke-width="1"/>
+          <path d="M360 10 h-14 M370 20 v14" fill="none" stroke="var(--line-strong)" stroke-width="1"/>
+          <path d="M20 430 h14 M10 420 v14" fill="none" stroke="var(--line-strong)" stroke-width="1"/>
+          <path d="M360 430 h-14 M370 420 v14" fill="none" stroke="var(--line-strong)" stroke-width="1"/>
+
+          <path d="M190 60 C 140 60 110 100 110 145 C 110 182 132 206 150 225 L150 250 L230 250 L230 225 C 248 206 270 182 270 145 C 270 100 240 60 190 60 Z"
+                fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+
+          <rect x="150" y="250" width="80" height="46" fill="url(#hatch)" stroke="var(--ink)" stroke-width="1.6"/>
+          <line x1="150" y1="262" x2="230" y2="262" stroke="var(--ink)" stroke-width="1"/>
+          <line x1="150" y1="274" x2="230" y2="274" stroke="var(--ink)" stroke-width="1"/>
+          <line x1="150" y1="286" x2="230" y2="286" stroke="var(--ink)" stroke-width="1"/>
+          <rect x="168" y="296" width="44" height="14" rx="2" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.6"/>
+
+          <path d="M164 148 L176 126 L188 158 L200 126 L212 158 L222 140"
+                fill="none" stroke="var(--brand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="164" y1="148" x2="164" y2="250" stroke="var(--brand)" stroke-width="2"/>
+          <line x1="222" y1="140" x2="222" y2="250" stroke="var(--brand)" stroke-width="2"/>
+
+          <circle cx="150" cy="90" r="2" fill="var(--ink)"/>
+          <path d="M150 90 L72 78" fill="none" stroke="var(--ink)" stroke-width="1"/>
+          <text x="40" y="82" font-family="var(--font-mono)" font-size="13" fill="var(--ink)">10</text>
+
+          <circle cx="203" cy="140" r="2" fill="var(--ink)"/>
+          <path d="M203 140 L305 118" fill="none" stroke="var(--ink)" stroke-width="1"/>
+          <text x="310" y="122" font-family="var(--font-mono)" font-size="13" fill="var(--ink)">12</text>
+
+          <circle cx="205" cy="272" r="2" fill="var(--ink)"/>
+          <path d="M205 272 L305 284" fill="none" stroke="var(--ink)" stroke-width="1"/>
+          <text x="310" y="288" font-family="var(--font-mono)" font-size="13" fill="var(--ink)">14</text>
+
+          <text x="30" y="404" font-family="var(--font-mono)" font-size="14" letter-spacing="1" fill="var(--muted)">FIG. 1</text>
+        </svg>
+      </div>
+
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Patenter · Authentication</p>
+        <h1>Every idea starts&nbsp;with a secure filing.</h1>
+        <p>Sign in to draft, manage and track your patent applications. Your session is protected by a short-lived access token and a rotating, HTTP-only refresh cookie that this page never touches directly.</p>
+      </div>
+    </section>
+
+    <div class="auth-card-wrap">
+      <div class="auth-card">
+        <img class="card-logo" src="../../images-and-other-branding/logo-no-backround.png" alt="Patenter">
+
+        <div class="tabs" id="tabs">
+          <div class="tabs-indicator"></div>
+          <button type="button" class="tab-btn is-active" id="tab-login-btn">Sign in</button>
+          <button type="button" class="tab-btn" id="tab-register-btn">Create account</button>
+        </div>
+
+        <form class="auth-form" id="form-login" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <div class="field-input">
+              <input type="email" id="login-email" name="email" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <div class="field-input">
+              <input type="password" id="login-password" name="password" class="has-toggle" autocomplete="current-password" required>
+              <button type="button" class="pw-toggle" data-toggle-for="login-password" aria-label="Show password">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <p class="form-msg" id="login-msg"></p>
+          <button type="submit" class="submit-btn" id="login-submit">Sign in</button>
+        </form>
+
+        <form class="auth-form" id="form-register" hidden novalidate>
+          <div class="field">
+            <label for="reg-email">Email</label>
+            <div class="field-input">
+              <input type="email" id="reg-email" name="email" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="reg-password">Password</label>
+            <div class="field-input">
+              <input type="password" id="reg-password" name="password" class="has-toggle" autocomplete="new-password" required>
+              <button type="button" class="pw-toggle" data-toggle-for="reg-password" aria-label="Show password">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="reg-confirm">Confirm password</label>
+            <div class="field-input">
+              <input type="password" id="reg-confirm" name="confirm" autocomplete="new-password" required>
+            </div>
+          </div>
+          <p class="form-msg" id="reg-msg"></p>
+          <button type="submit" class="submit-btn" id="reg-submit">Create account</button>
+        </form>
+
+        <p class="switch-line" id="switch-line">
+          New to Patenter? <button type="button" id="switch-to-register">Create an account</button>
+        </p>
+
+        <div class="security-note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top:1px"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <span>Your refresh token is never stored by this page — the browser holds it as an HTTP-only cookie that JavaScript can't read.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Configuration ---------------------------------------------------
+  // If your backend is served from a different origin than this page,
+  // set the full origin here, e.g. 'https://api.patenter.app'.
+  // Whatever you use, the backend must send:
+  //   Access-Control-Allow-Origin: <this page's exact origin>  (not '*')
+  //   Access-Control-Allow-Credentials: true
+  // or the browser will silently drop the refresh-token cookie.
+  const API_BASE_URL = 'http://localhost:3000';
+
+  // Where to send the user once they're authenticated.
+  const APP_URL = '../../app/index.html';
+
+  // ---- Small helpers -----------------------------------------------------
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  function getToken(){ return localStorage.getItem('accessToken'); }
+  function setToken(t){ localStorage.setItem('accessToken', t); }
+  function clearToken(){ localStorage.removeItem('accessToken'); }
+
+  // ---- Core request wrapper ----------------------------------------------
+  async function apiRequest(method, path, { body, token, credentials } = {}){
+    const headers = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    let res;
+    try{
+      res = await fetch(API_BASE_URL + path, {
+        method,
+        headers,
+        credentials: credentials ? 'include' : 'same-origin',
+        body: body !== undefined ? JSON.stringify(body) : undefined
+      });
+    } catch (networkErr){
+      return { ok:false, networkError:true, status:0, data:null };
+    }
+
+    let data = null;
+    try { data = await res.json(); } catch(_) { /* no/invalid JSON body */ }
+
+    return { ok: res.ok, status: res.status, data, networkError:false };
+  }
+
+  function defaultMessage(status){
+    if (status === 400) return 'Check the details you entered and try again.';
+    if (status === 401) return 'Incorrect email or password.';
+    if (status === 404) return 'That endpoint could not be found. Check API_BASE_URL.';
+    if (status === 409) return 'An account with this email already exists.';
+    if (status >= 500) return 'The server hit an error. Try again shortly.';
+    return 'Request failed (status ' + status + ').';
+  }
+  function messageFor(result){
+    if (result.networkError) return "Couldn't reach the server. Check that the API is running and that CORS/credentials are configured for this origin.";
+    return (result.data && (result.data.message || result.data.error)) || defaultMessage(result.status);
+  }
+
+  // ---- Auth actions --------------------------------------------------------
+  function register(email, password){
+    return apiRequest('POST', '/auth/register', { body: { email, password } });
+  }
+
+  async function login(email, password){
+    const result = await apiRequest('POST', '/auth/login', { body: { email, password }, credentials: true });
+    if (result.ok && result.data && result.data.accessToken){
+      setToken(result.data.accessToken);
+    }
+    return result;
+  }
+
+  function getMe(token){
+    return apiRequest('GET', '/auth/me', { token });
+  }
+
+  async function refresh(){
+    const result = await apiRequest('POST', '/auth/refresh', { credentials: true });
+    if (result.ok && result.data && result.data.accessToken){
+      setToken(result.data.accessToken);
+    } else {
+      clearToken();
+    }
+    return result;
+  }
+
+  // Implements: try /auth/me -> on 401, refresh -> retry /auth/me once.
+  async function loadMeWithRefresh(){
+    let token = getToken();
+    if (!token) return { ok:false };
+
+    let result = await getMe(token);
+    if (result.status === 401){
+      const refreshed = await refresh();
+      if (!refreshed.ok) return { ok:false };
+      result = await getMe(getToken());
+    }
+    return result;
+  }
+
+  function goToApp(){
+    window.location.href = APP_URL;
+  }
+
+  // ---- View plumbing -------------------------------------------------------
+  const screenAuth = $('#screen-auth');
+  const tabs = $('#tabs');
+  const tabLoginBtn = $('#tab-login-btn');
+  const tabRegisterBtn = $('#tab-register-btn');
+  const formLogin = $('#form-login');
+  const formRegister = $('#form-register');
+
+  function setAuthTab(which){
+    const isLogin = which === 'login';
+    tabs.classList.toggle('on-register', !isLogin);
+    tabLoginBtn.classList.toggle('is-active', isLogin);
+    tabRegisterBtn.classList.toggle('is-active', !isLogin);
+    tabLoginBtn.setAttribute('aria-selected', String(isLogin));
+    tabRegisterBtn.setAttribute('aria-selected', String(!isLogin));
+    formLogin.hidden = !isLogin;
+    formRegister.hidden = isLogin;
+    $('#switch-line').innerHTML = isLogin
+      ? 'New to Patenter? <button type="button" id="switch-to-register">Create an account</button>'
+      : 'Already have an account? <button type="button" id="switch-to-login">Sign in</button>';
+    const btn = $('#switch-to-register') || $('#switch-to-login');
+    if (btn) btn.addEventListener('click', () => setAuthTab(isLogin ? 'register' : 'login'));
+    (isLogin ? $('#login-email') : $('#reg-email')).focus();
+  }
+  tabLoginBtn.addEventListener('click', () => setAuthTab('login'));
+  tabRegisterBtn.addEventListener('click', () => setAuthTab('register'));
+  $('#switch-to-register').addEventListener('click', () => setAuthTab('register'));
+
+  // Password show/hide toggles
+  $$('.pw-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.toggleFor);
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+  });
+
+  // ---- Form: Login -----------------------------------------------------
+  formLogin.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('#login-msg');
+    const submitBtn = $('#login-submit');
+    const email = $('#login-email').value.trim();
+    const password = $('#login-password').value;
+
+    msg.textContent = '';
+    msg.className = 'form-msg';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in…';
+
+    const result = await login(email, password);
+
+    if (result.ok){
+      // Successful login = automatically authenticated. Head straight
+      // into the app rather than showing anything in this page.
+      goToApp();
+      return;
+    }
+
+    msg.className = 'form-msg err';
+    msg.textContent = messageFor(result);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign in';
+  });
+
+  // ---- Form: Register -----------------------------------------------------
+  formRegister.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('#reg-msg');
+    const submitBtn = $('#reg-submit');
+    const email = $('#reg-email').value.trim();
+    const password = $('#reg-password').value;
+    const confirm = $('#reg-confirm').value;
+
+    msg.textContent = '';
+    msg.className = 'form-msg';
+
+    if (password !== confirm){
+      msg.className = 'form-msg err';
+      msg.textContent = "Passwords don't match.";
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account…';
+
+    const result = await register(email, password);
+
+    if (result.ok){
+      msg.className = 'form-msg ok';
+      msg.textContent = 'Account created. Sign in below.';
+      formRegister.reset();
+      setAuthTab('login');
+      $('#login-email').value = email;
+      $('#login-password').focus();
+    } else {
+      msg.className = 'form-msg err';
+      msg.textContent = messageFor(result);
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create account';
+  });
+
+  // ---- Boot -----------------------------------------------------------
+  // If a valid session already exists, skip the form entirely and go
+  // straight to the app. Otherwise reveal the login form.
+  (async function init(){
+    if (!getToken()){
+      screenAuth.hidden = false;
+      return;
+    }
+    const me = await loadMeWithRefresh();
+    if (me.ok){
+      goToApp();
+    } else {
+      clearToken();
+      screenAuth.hidden = false;
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>

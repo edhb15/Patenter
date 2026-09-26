@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patenter</title>
+  <link rel="icon" type="image/x-icon" href="/images-and-other-branding/SmallSquareLogoJpg.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans&display=swap" rel="stylesheet" />
+  <style>
+    /* Reset some default styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #F4F4F4;
+      color: #222;
+      line-height: 1.6;
+    }
+
+    /* Header styles */
+    header {
+      background-color: #0D3B66;
+      padding: 20px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.5em;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    nav a {
+      color: #fff;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    nav a:hover {
+      color: #00B4D8;
+    }
+
+    /* Hero section */
+    .hero {
+      margin-top: 80px; /* to offset fixed header */
+      background-color: #0D3B66;
+      color: #fff;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8em;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 1.2em;
+      margin-bottom: 30px;
+    }
+
+    .btn-primary {
+      background-color: #00B4D8;
+      color: #fff;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 30px;
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #0097c2;
+    }
+
+    /* Sections styles */
+    section {
+      padding: 60px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Features Section */
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .feature-card {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      flex: 1 1 250px;
+      padding: 30px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .feature-icon {
+      font-size: 3em;
+      color: #0D3B66;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 15px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+    }
+    .docs-link {
+    color: black;
+    background-color: transparent;
+    text-decoration: none;
+    }
+    a:visited {
+    color: black;
+    background-color: transparent;
+    text-decoration: none;
+    }
+    a:hover {
+    color: black;
+    background-color: transparent;
+    text-decoration: underline;
+    }
+    a:active {
+    color: white;
+    background-color: transparent;
+    text-decoration: underline;
+    }
+
+    /* How it Works */
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .step {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      flex: 1 1 250px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .step h3 {
+      margin-bottom: 15px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+    }
+
+    /* Pricing */
+    .pricing {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .pricing-card {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      flex: 1 1 300px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .pricing h3 {
+      margin-bottom: 15px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+    }
+
+    .price {
+      font-size: 2em;
+      margin: 20px 0;
+      color: #0D3B66;
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      border: 2px solid #0D3B66;
+      color: #0D3B66;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background-color: #0D3B66;
+      color: #fff;
+    }
+
+    /* Footer */
+    footer {
+      background-color: #222;
+      color: #fff;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    footer p {
+      margin-bottom: 10px;
+    }
+
+    /* Responsive styles */
+    @media(max-width: 768px) {
+      .features, .steps, .pricing {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      nav {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">Patenter</div>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <h1>Make patents with ease and secure inovations</h1>
+    <p>Patenter is a aplication for making patents a easier proces; for both patent attorneys and inventors, small organizations and big enterpercises</p>
+    <button class="btn-primary" onclick="login()">Get Started</button>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features">
+    <h2 style="text-align:center; margin-bottom:40px;">Features</h2>
+    <div class="features">
+      <div class="feature-card" onclick="canvas()">
+        <div class="feature-icon">✨</div>
+        <h3>Make patents with AI</h3>
+        <p>Just ask your copilot, edward and get a patent aplication done for you.</p>
+      </div>
+      <div class="feature-card" onclick="serch()">
+        <div class="feature-icon">🔎</div>
+        <h3>Search patents</h3>
+        <p>Search patents from all major patent databases in the world; with ease.</p>
+      </div>
+      <div class="feature-card" onclick="simulator()">
+        <div class="feature-icon">📄</div>
+        <h3>Document editor</h3>
+        <p>Our own document/text editor.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing">
+    <h2 style="text-align:center; margin-bottom:40px;">Pricing Plans</h2>
+    <div class="pricing">
+      <div class="pricing-card">
+        <h3>Basic</h3>
+        <div class="price">$5/month</div>
+        <p>Ideal for individual inventors and small projects.</p>
+        <button onclick="pricing()" class="btn-secondary">Choose Basic</button>
+      </div>
+      <div class="pricing-card">
+        <h3>Basic+</h3>
+        <div class="price">$10/month</div>
+        <p>Ideal for small inventors and small projects.</p>
+        <button onclick="pricing()" class="btn-secondary">Choose Basic+</button>
+      </div>
+      <div class="pricing-card" style="border: 2px solid #00B4D8;">
+        <h3>Pro</h3>
+        <div class="price">$20/month</div>
+        <p>Get advanced features and more; ideal for small companies</p>
+        <button onclick="pricing()" class="btn-secondary">Choose Pro</button>
+      </div>
+      <div class="pricing-card">
+        <h3>Pro+</h3>
+        <div class="price">$25/month</div>
+        <p>Best for medium sized companies</p>
+        <button onclick="pricing()" class="btn-secondary">Choose Pro+</button>
+      </div>
+      <div class="pricing-card">
+        <h3>Enterprise</h3>
+        <div class="price">Contact Us</div>
+        <p>Customized solutions for large organizations.</p>
+        <button class="btn-secondary">Contact Sales</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="contact">
+    <p>&copy; 2026 Patenter All rights reserved.</p>
+    <p>Follow us on 
+      <a href="https://www.facebook.com/patenter" style="color:#00B4D8; text-decoration:none;">Social Media</a>
+    </p>
+  </footer>
+  <script>
+    let logedin = localStorage.getItem("userLoggedIn");
+    if (logedin == "true"){
+      window.location.href = "/app/index.html"
+    }
+    function pricing() {
+      window.location.href = "auth/index.html"
+    }
+  </script>
+
+</body>
+</html>

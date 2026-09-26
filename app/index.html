@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Documents – Patenter</title>
+<link rel="icon" type="image/x-icon" href="../images-and-other-branding/SmallSquareLogoJpg.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0D3B66;
+    --primary-dark: #0a2f52;
+    --accent: #00B4D8;
+    --accent-tint: #E6F7FB;
+    --light-bg: #F4F4F4;
+    --dark-bg: #111827;
+    --white: #FFFFFF;
+    --text-dark: #222222;
+    --text-light: #555555;
+    --border: #E5E7EB;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --radius: 12px;
+    --pill: 30px;
+    --ease: 0.3s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    background: var(--light-bg);
+    color: var(--text-dark);
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+  }
+
+  h1, h2, h3, .brand-name { font-family: 'Montserrat', 'Open Sans', sans-serif; font-weight: 700; color: var(--primary); }
+
+  a { color: var(--primary); }
+  button, input { font-family: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 22px;
+    border-radius: var(--pill); border: 2px solid transparent;
+    font-weight: 700; font-size: 15px; text-decoration: none;
+    transition: all var(--ease);
+  }
+  .btn-primary { background: var(--primary); color: var(--white); border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); transform: translateY(-2px); }
+  .btn-secondary { background: transparent; color: var(--primary); border-color: var(--primary); }
+  .btn-secondary:hover { background: var(--primary); color: var(--white); }
+  .btn-icon {
+    width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--white); color: var(--primary);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all var(--ease);
+  }
+  .btn-icon:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    height: 72px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 32px;
+    padding: 0 40px;
+    background: var(--white); border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand-name { font-size: 22px; }
+  .topbar-spacer { flex: 1; }
+  .search {
+    display: flex; align-items: center; gap: 10px;
+    width: 320px; height: 44px; padding: 0 16px;
+    background: var(--light-bg); border: 1px solid var(--border); border-radius: var(--pill);
+    color: var(--text-light);
+  }
+  .search:focus-within { border-color: var(--accent); background: var(--white); }
+  .search input { flex: 1; min-width: 0; border: none; background: transparent; font-size: 15px; color: var(--text-dark); outline: none; }
+
+  /* ---------- Layout ---------- */
+  .layout { flex: 1; min-height: 0; display: flex; }
+
+  .sidebar {
+    width: 264px; flex-shrink: 0;
+    padding: 32px 20px 32px 40px;
+    display: flex; flex-direction: column; gap: 28px;
+    overflow-y: auto;
+  }
+  .sidebar-actions { display: flex; flex-direction: column; gap: 10px; }
+  .sidebar-actions .btn { height: 48px; width: 100%; }
+  .folder-heading { font-size: 13px; font-weight: 700; color: var(--text-light); padding: 0 14px 8px; }
+  .folders { display: flex; flex-direction: column; gap: 4px; }
+  .folder {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 44px; padding: 0 14px; border: none; border-radius: 10px;
+    background: transparent; color: var(--text-dark); font-size: 15px; text-align: left;
+    transition: background var(--ease), color var(--ease);
+  }
+  .folder:hover { background: rgba(255, 255, 255, 0.7); }
+  .folder[aria-pressed="true"] { background: var(--white); color: var(--primary); font-weight: 700; box-shadow: var(--shadow-subtle); }
+  .folder-count { font-size: 13px; color: var(--text-light); font-weight: 600; }
+
+
+  .content {
+    flex: 1; min-width: 0;
+    padding: 32px 32px 32px 16px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .page-head h1 { font-size: 32px; line-height: 1.2; }
+  .page-head p { margin-top: 6px; font-size: 15px; line-height: 1.7; color: var(--text-light); }
+  .page-head .btn { height: 44px; font-size: 14px; flex-shrink: 0; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    height: 40px; padding: 0 16px; border-radius: var(--pill);
+    border: 1px solid var(--border); background: var(--white); color: var(--text-dark);
+    font-size: 14px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all var(--ease);
+  }
+  .chip:hover { border-color: var(--primary); }
+  .chip-count {
+    min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+    background: var(--light-bg); color: var(--text-light);
+    font-size: 12px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--white); }
+  .chip[aria-pressed="true"] .chip-count { background: rgba(255, 255, 255, 0.2); color: var(--white); }
+
+  .table {
+    flex: 1; min-height: 0;
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-medium);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .row-grid { display: grid; grid-template-columns: minmax(0, 1fr) 130px 130px 110px; gap: 16px; align-items: center; }
+  .table-head { padding: 14px 24px; background: var(--primary); color: var(--white); font-size: 13px; font-weight: 700; }
+  .table-body { flex: 1; overflow-y: auto; }
+  .doc-row {
+    width: 100%; min-height: 72px; padding: 14px 24px;
+    border: none; border-bottom: 1px solid var(--border);
+    background: var(--white); color: inherit; text-align: left;
+    transition: background var(--ease), box-shadow var(--ease);
+  }
+  .doc-row:hover { background: var(--light-bg); }
+  .doc-row[aria-pressed="true"] { background: var(--accent-tint); box-shadow: inset 4px 0 0 var(--accent); }
+  .doc-name { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .doc-icon {
+    width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px;
+    background: var(--light-bg); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .doc-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .doc-title { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .doc-meta { font-size: 13px; color: var(--text-light); }
+  .cell-muted { font-size: 14px; color: var(--text-light); }
+  .owner { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-light); }
+  .owner-dot {
+    width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+    background: var(--primary); color: var(--white); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; height: 28px; padding: 0 12px;
+    border-radius: var(--pill); font-size: 13px; font-weight: 700; white-space: nowrap;
+  }
+  .badge-draft { background: #EEF0F3; color: #374151; }
+  .badge-review { background: #FEF3C7; color: #92400E; }
+  .badge-filed { background: #E0F5FA; color: var(--primary); }
+  .badge-granted { background: #D1FAE5; color: #065F46; }
+
+  .empty { padding: 64px 24px; text-align: center; }
+  .empty h3 { font-size: 18px; margin-bottom: 6px; }
+  .empty p { font-size: 14px; color: var(--text-light); }
+
+  /* ---------- Details pane ---------- */
+  .details {
+    width: 380px; flex-shrink: 0;
+    background: var(--white); border-left: 1px solid var(--border);
+    padding: 32px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .details-head { display: flex; flex-direction: column; gap: 12px; }
+  .details-head .badge { align-self: flex-start; }
+  .details-head h2 { font-size: 22px; line-height: 1.3; }
+  .details-head p { font-size: 14px; color: var(--text-light); }
+
+  .progress { background: var(--light-bg); border-radius: var(--radius); padding: 20px; }
+  .progress h3 { font-family: 'Open Sans', sans-serif; font-size: 13px; color: var(--text-light); margin-bottom: 14px; }
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .step { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-light); }
+  .step-dot {
+    width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%;
+    background: var(--white); border: 2px solid #D1D5DB;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.done, .step.current { color: var(--text-dark); font-weight: 600; }
+  .step.done .step-dot { background: var(--success); border-color: var(--success); }
+  .step.current .step-dot { border: 6px solid var(--accent); }
+
+  .facts { display: flex; flex-direction: column; }
+  .fact { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .fact:last-child { border-bottom: none; }
+  .fact dt { color: var(--text-light); }
+  .fact dd { font-weight: 600; text-align: right; }
+
+  .actions { display: flex; gap: 10px; }
+  .actions .btn-primary { flex: 1; }
+
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1399px) {
+    .search { width: 240px; }
+    .details { width: 340px; }
+  }
+  @media (max-width: 1023px) {
+    .details { display: none; }
+    .content { padding-right: 24px; }
+  }
+  @media (max-width: 767px) {
+    body { height: auto; }
+    .topbar { padding: 0 20px; gap: 12px; }
+    .search { width: auto; flex: 1; }
+    .topbar-spacer { display: none; }
+    .layout { flex-direction: column; }
+    .sidebar { width: auto; padding: 20px 20px 0; gap: 16px; overflow: visible; }
+    .folders { flex-direction: row; overflow-x: auto; }
+    .folder { flex-shrink: 0; gap: 10px; }
+    .folder-heading { display: none; }
+    .sidebar-actions { flex-direction: row; flex-wrap: wrap; }
+    .sidebar-actions .btn { width: auto; flex: 1 1 auto; }
+    .content { padding: 20px; }
+    .page-head h1 { font-size: 26px; }
+    .table-head { display: none; }
+    .doc-row.row-grid { grid-template-columns: minmax(0, 1fr) auto; row-gap: 10px; }
+    .doc-row .cell-muted, .doc-row .owner { display: none; }
+  }
+  /* ---------- Storage-related UI ---------- */
+  .field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-light); }
+  .field input, .field select {
+    height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--white); color: var(--text-dark); font-size: 15px; font-weight: 400;
+  }
+  .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .title-input {
+    width: 100%; border: 1px solid transparent; border-radius: 8px; padding: 4px 8px; margin: 0 -8px;
+    font-family: 'Montserrat', 'Open Sans', sans-serif; font-weight: 700; font-size: 22px; line-height: 1.3;
+    color: var(--primary); background: transparent;
+  }
+  .title-input:hover { border-color: var(--border); }
+  .title-input:focus { outline: 2px solid var(--accent); background: var(--white); }
+  .btn-danger { background: transparent; color: #B91C1C; border-color: #FCA5A5; }
+  .btn-danger:hover { background: #B91C1C; border-color: #B91C1C; color: var(--white); }
+  .details .btn-danger { width: 100%; }
+
+  .table.dragging { outline: 3px dashed var(--accent); outline-offset: -3px; }
+  .drop-hint { font-size: 13px; color: var(--text-light); }
+  .empty .btn { margin-top: 16px; }
+
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--dark-bg); color: var(--white); padding: 12px 20px; border-radius: var(--pill);
+    font-size: 14px; font-weight: 600; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    opacity: 0; pointer-events: none; transition: opacity var(--ease);
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #B91C1C; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+      <rect x="1" y="1" width="28" height="28" rx="8" fill="#0D3B66"/>
+      <path d="M11 21V9h5a4 4 0 0 1 0 8h-5" stroke="#00B4D8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="brand-name">Patenter</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <label class="search">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr-only">Search documents</span>
+    <input id="search" type="search" placeholder="Search documents" autocomplete="off">
+  </label>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-actions">
+      <a class="btn btn-primary" href="/editor/document.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        New document
+      </a>
+      <a class="btn btn-secondary" href="/ai/index.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+        New AI chat
+      </a>
+      <a class="btn btn-secondary" href="/find/index.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        Find patents
+      </a>
+    </div>
+    <nav aria-label="Folders">
+      <div class="folder-heading">Library</div>
+      <div class="folders" id="folders"></div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="page-head">
+      <div>
+        <h1>My Documents</h1>
+        <p>Applications, claim drafts, search reports and office-action responses in one place. Drop files on the list to upload.</p>
+      </div>
+      <button class="btn btn-secondary" type="button" id="uploadBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>
+        Upload
+      </button>
+    </div>
+
+    <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+
+    <input type="file" id="fileInput" multiple hidden>
+    <section class="table" id="table" aria-label="Documents">
+      <div class="table-head row-grid">
+        <span>Name</span><span>Status</span><span>Last edited</span><span>Owner</span>
+      </div>
+      <div class="table-body" id="rows"></div>
+    </section>
+  </main>
+
+  <aside class="details" id="details" aria-label="Document details" aria-live="polite"></aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* =========================================================
+     PATENTER SHARED STORAGE  (keep identical in index.html and
+     editor/document.html — both pages open the same database)
+
+     Database "patenter", version 3
+       documents  keyPath "id"   indexes: updatedAt, type, status, kind
+       meta       keyPath "key"
+
+     Every row in "documents":
+       id, title, kind ("file" | "editor"), type, ref, status, owner,
+       createdAt, updatedAt   (numbers: ms since epoch)
+       fileName, mimeType, size
+       kind "file"   → blob       (uploaded in the library)
+       kind "editor" → pages[]    (HTML per page, written by the editor)
+
+     Rows written by the older "PatenterEditorDB" are copied in once.
+  ========================================================= */
+
+  const PATENTER_DB_NAME = "patenter";
+  const PATENTER_DB_VERSION = 3;
+  const PATENTER_LEGACY_DB = "PatenterEditorDB";
+
+  // Accepts numbers, ISO strings or Dates; returns ms (0 if unknown).
+  function patenterToMs(value) {
+      if (typeof value === "number") return value;
+      if (value instanceof Date) return value.getTime();
+      const ms = Date.parse(value || "");
+      return Number.isNaN(ms) ? 0 : ms;
+  }
+
+  // Bring any record (old library row, old editor row, new row) to the shared shape.
+  function patenterNormalize(record) {
+      const r = { ...record };
+      r.kind = r.kind || (Array.isArray(r.pages) ? "editor" : "file");
+      r.createdAt = patenterToMs(r.createdAt || r.savedAt || r.updatedAt) || Date.now();
+      r.updatedAt = patenterToMs(r.updatedAt || r.savedAt) || r.createdAt;
+      delete r.savedAt;
+      r.title = r.title || "Untitled document";
+      r.type = r.type || "Patent application";
+      r.status = r.status || "Draft";
+      r.owner = r.owner || "You";
+      if (r.ref == null) r.ref = "";
+      if (r.kind === "editor") {
+          r.pages = Array.isArray(r.pages) ? r.pages : [""];
+          r.mimeType = "text/html";
+          r.fileName = `${r.title}.html`;
+          r.size = new Blob(r.pages).size;
+      }
+      return r;
+  }
+
+  const patenterIsEditorDoc = r => !!r && (r.kind === "editor" || Array.isArray(r.pages));
+
+  function patenterRequest(req) {
+      return new Promise((resolve, reject) => {
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+      });
+  }
+
+  function patenterUpgrade(db, tx) {
+      const docs = db.objectStoreNames.contains("documents")
+          ? tx.objectStore("documents")
+          : db.createObjectStore("documents", { keyPath: "id" });
+
+      ["updatedAt", "type", "status", "kind"].forEach(name => {
+          if (!docs.indexNames.contains(name)) docs.createIndex(name, name);
+      });
+
+      if (!db.objectStoreNames.contains("meta")) {
+          db.createObjectStore("meta", { keyPath: "key" });
+      }
+
+      // Rewrite existing rows (e.g. from library v1) into the shared shape.
+      docs.openCursor().onsuccess = event => {
+          const cursor = event.target.result;
+          if (!cursor) return;
+          cursor.update(patenterNormalize(cursor.value));
+          cursor.continue();
+      };
+  }
+
+  // Copy documents from the editor's old database the first time we run.
+  async function patenterMigrateLegacy(db) {
+      const flag = await patenterRequest(
+          db.transaction("meta", "readonly").objectStore("meta").get("migratedLegacyEditorDB")
+      );
+      if (flag) return;
+
+      // Open the old DB without creating it if it never existed.
+      const legacy = await new Promise(resolve => {
+          let req;
+          try { req = indexedDB.open(PATENTER_LEGACY_DB); } catch { return resolve(null); }
+          req.onupgradeneeded = event => { if (event.oldVersion === 0) req.transaction.abort(); };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = event => { event.preventDefault(); resolve(null); };
+          req.onblocked = () => resolve(null);
+      });
+
+      let oldDocs = [];
+      let lastOpenedId;
+      if (legacy) {
+          try {
+              if (legacy.objectStoreNames.contains("documents")) {
+                  oldDocs = await patenterRequest(
+                      legacy.transaction("documents", "readonly").objectStore("documents").getAll()
+                  );
+              }
+              if (legacy.objectStoreNames.contains("meta")) {
+                  const row = await patenterRequest(
+                      legacy.transaction("meta", "readonly").objectStore("meta").get("lastOpenedId")
+                  );
+                  lastOpenedId = row && row.value;
+              }
+          } finally {
+              legacy.close();
+          }
+      }
+
+      await new Promise((resolve, reject) => {
+          const tx = db.transaction(["documents", "meta"], "readwrite");
+          const docs = tx.objectStore("documents");
+          const meta = tx.objectStore("meta");
+          oldDocs.forEach(doc => {
+              docs.get(doc.id).onsuccess = e => {
+                  if (!e.target.result) docs.put(patenterNormalize({ ...doc, kind: "editor" }));
+              };
+          });
+          if (lastOpenedId) {
+              meta.get("lastOpenedId").onsuccess = e => {
+                  if (!e.target.result) meta.put({ key: "lastOpenedId", value: lastOpenedId });
+              };
+          }
+          meta.put({ key: "migratedLegacyEditorDB", value: Date.now() });
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error("Migration aborted"));
+      });
+  }
+
+  let patenterDbPromise = null;
+
+  function patenterOpenDB() {
+      if (patenterDbPromise) return patenterDbPromise;
+
+      patenterDbPromise = new Promise((resolve, reject) => {
+          if (!("indexedDB" in window)) {
+              reject(new Error("IndexedDB is not supported in this browser."));
+              return;
+          }
+          const req = indexedDB.open(PATENTER_DB_NAME, PATENTER_DB_VERSION);
+          req.onupgradeneeded = () => patenterUpgrade(req.result, req.transaction);
+          req.onsuccess = () => {
+              const db = req.result;
+              // Another tab needs a newer version: let go so it isn't blocked.
+              db.onversionchange = () => { db.close(); patenterDbPromise = null; };
+              resolve(db);
+          };
+          req.onerror = () => reject(req.error);
+          req.onblocked = () => {
+              console.warn("Patenter database upgrade is waiting for another tab to close.");
+              window.dispatchEvent(new CustomEvent("patenter-db-blocked"));
+          };
+      }).then(async db => {
+          try { await patenterMigrateLegacy(db); } catch (err) { console.warn("Legacy migration skipped:", err); }
+          return db;
+      });
+
+      patenterDbPromise.catch(() => { patenterDbPromise = null; });
+      return patenterDbPromise;
+  }
+
+  // Read-modify-write several rows in ONE transaction, so edits made by the
+  // other page between the read and the write are never lost.
+  // patches: [{ id, changes, create? }] — create is used when the row is missing.
+  async function patenterPatch(patches) {
+      const db = await patenterOpenDB();
+      return new Promise((resolve, reject) => {
+          const tx = db.transaction("documents", "readwrite");
+          const store = tx.objectStore("documents");
+          patches.forEach(({ id, changes, create }) => {
+              store.get(id).onsuccess = e => {
+                  const current = e.target.result || create;
+                  if (current) store.put(patenterNormalize({ ...current, ...changes, id }));
+              };
+          });
+          tx.oncomplete = () => { patenterNotify(patches.map(p => p.id)); resolve(); };
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+      });
+  }
+
+  // Tell the other page (in other tabs) that rows changed.
+  const patenterChannel = "BroadcastChannel" in window ? new BroadcastChannel("patenter-db") : null;
+  function patenterNotify(ids) {
+      try { patenterChannel && patenterChannel.postMessage({ type: "changed", ids }); } catch {}
+  }
+
+  /* ---- Library-side helpers on top of the shared layer ---- */
+  const STORE = 'documents';
+  const db = () => patenterOpenDB();
+
+  async function tx(mode, fn) {
+    const conn = await db();
+    return new Promise((resolve, reject) => {
+      const t = conn.transaction(STORE, mode);
+      let result;
+      const req = fn(t.objectStore(STORE));
+      if (req) req.onsuccess = () => { result = req.result; };
+      t.oncomplete = () => resolve(result);
+      t.onerror = () => reject(t.error);
+      t.onabort = () => reject(t.error || new Error('Transaction aborted'));
+    });
+  }
+
+  const docStore = {
+    all: () => tx('readonly', (s) => s.getAll()),
+    get: (id) => tx('readonly', (s) => s.get(id)),
+    remove: async (id) => { await tx('readwrite', (s) => s.delete(id)); patenterNotify([id]); },
+    patch: (id, changes) => patenterPatch([{ id, changes }]),
+    patchMany: (patches) => patenterPatch(patches),
+    async putMany(docs) {
+      const conn = await db();
+      return new Promise((resolve, reject) => {
+        const t = conn.transaction(STORE, 'readwrite');
+        const s = t.objectStore(STORE);
+        docs.forEach((d) => s.put(patenterNormalize(d)));
+        t.oncomplete = () => { patenterNotify(docs.map((d) => d.id)); resolve(); };
+        t.onerror = () => reject(t.error);
+        t.onabort = () => reject(t.error || new Error('Transaction aborted'));
+      });
+    }
+  };
+
+  const EDITOR_URL = '/editor/document.html';
+
+  /* =========================================================
+     App config
+     ========================================================= */
+  const TYPES = ['Patent application', 'Prior-art report', 'Office action response'];
+  const FOLDERS = [
+    { id: 'all', label: 'All documents' },
+    { id: 'Patent application', label: 'Applications' },
+    { id: 'Prior-art report', label: 'Prior-art reports' },
+    { id: 'Office action response', label: 'Office actions' }
+  ];
+  const STATUS_LIST = ['Draft', 'In review', 'Filed', 'Granted'];
+  const STATUSES = ['All', ...STATUS_LIST];
+  const STAGES = ['Drafted', 'In review', 'Filed', 'Granted'];
+  const STAGE_INDEX = { 'Draft': 0, 'In review': 1, 'Filed': 2, 'Granted': 3 };
+  const BADGE_CLASS = { 'Draft': 'badge-draft', 'In review': 'badge-review', 'Filed': 'badge-filed', 'Granted': 'badge-granted' };
+  const REF_PREFIX = { 'Patent application': 'PT', 'Prior-art report': 'SR', 'Office action response': 'OA' };
+  const MAX_FILE_BYTES = 100 * 1024 * 1024; // 100 MB per file
+
+  let DOCS = [];
+  const state = { folder: 'all', filter: 'All', query: '', selected: null };
+
+  /* =========================================================
+     Helpers
+     ========================================================= */
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const badge = (status) => `<span class="badge ${BADGE_CLASS[status] || 'badge-draft'}">${esc(status)}</span>`;
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+  function formatSize(bytes) {
+    if (!bytes) return '0 B';
+    const u = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), u.length - 1);
+    return `${(bytes / 1024 ** i).toFixed(i ? 1 : 0)} ${u[i]}`;
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const startOfDay = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const days = Math.round((startOfDay(now) - startOfDay(d)) / 86400000);
+    if (days === 0) return `Today, ${time}`;
+    if (days === 1) return 'Yesterday';
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function nextRef(type) {
+    const prefix = REF_PREFIX[type] || 'DOC';
+    const nums = DOCS.filter((d) => d.ref && d.ref.startsWith(prefix + '-')).map((d) => parseInt(d.ref.split('-')[1], 10) || 0);
+    return `${prefix}-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, '0')}`;
+  }
+
+  // Best guess at the document type from its file name; the user can change it afterwards.
+  function guessType(name) {
+    const n = name.toLowerCase();
+    if (/prior[\s_-]?art|search[\s_-]?report|novelty/.test(n)) return 'Prior-art report';
+    if (/office[\s_-]?action|\boa\b|response/.test(n)) return 'Office action response';
+    return 'Patent application';
+  }
+
+  let toastTimer;
+  function toast(msg, isError = false) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.toggle('error', isError);
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+  }
+
+  const DOC_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+  const CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+  const DOWNLOAD_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>';
+
+  /* =========================================================
+     Data actions
+     ========================================================= */
+  async function loadDocs() {
+    const rows = (await docStore.all()).map(patenterNormalize);
+    DOCS = rows.sort((a, b) => b.updatedAt - a.updatedAt);
+    // Documents created in the editor have no reference number yet: give them one.
+    const missing = [...DOCS].reverse().filter((d) => !d.ref);
+    if (missing.length) {
+      missing.forEach((d) => { d.ref = nextRef(d.type); });
+      await docStore.patchMany(missing.map((d) => ({ id: d.id, changes: { ref: d.ref } })));
+    }
+  }
+
+  async function addFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    const tooBig = files.filter((f) => f.size > MAX_FILE_BYTES);
+    const ok = files.filter((f) => f.size <= MAX_FILE_BYTES);
+    const now = Date.now();
+    const records = [];
+    for (const f of ok) {
+      const type = guessType(f.name);
+      // Reserve the ref before pushing so several uploads of the same type get distinct refs.
+      const ref = nextRef(type);
+      const rec = {
+        id: newId(),
+        title: f.name.replace(/\.[^.]+$/, '') || f.name,
+        fileName: f.name,
+        mimeType: f.type || 'application/octet-stream',
+        size: f.size,
+        blob: f,               // File is a Blob, so IndexedDB stores it directly
+        kind: 'file',
+        type,
+        ref,
+        status: 'Draft',
+        owner: 'You',
+        createdAt: now,
+        updatedAt: now
+      };
+      records.push(rec);
+      DOCS.unshift(rec);
+    }
+    try {
+      if (records.length) await docStore.putMany(records);
+      if (records.length) state.selected = records[0].id;
+      await loadDocs();
+      render();
+      if (records.length) toast(`Saved ${records.length} document${records.length > 1 ? 's' : ''}`);
+      if (tooBig.length) toast(`${tooBig.length} file(s) skipped: larger than ${formatSize(MAX_FILE_BYTES)}`, true);
+    } catch (err) {
+      await loadDocs(); render();
+      toast(err.name === 'QuotaExceededError' ? 'Not enough browser storage to save these files.' : `Couldn't save: ${err.message}`, true);
+    }
+  }
+
+  async function updateDoc(id, changes) {
+    await docStore.patch(id, { ...changes, updatedAt: Date.now() });
+    await loadDocs(); render();
+  }
+
+  async function deleteDoc(id) {
+    const doc = DOCS.find((d) => d.id === id);
+    if (!doc || !confirm(`Delete "${doc.title}"? This removes it from this browser.`)) return;
+    await docStore.remove(id);
+    if (state.selected === id) state.selected = null;
+    await loadDocs(); render();
+    toast('Document deleted');
+  }
+
+  async function openDoc(id, download = false) {
+    const doc = await docStore.get(id);
+    if (doc && patenterIsEditorDoc(doc) && !download) {
+      location.href = `${EDITOR_URL}?id=${encodeURIComponent(doc.id)}`;
+      return;
+    }
+    const blob = doc && (doc.blob || (patenterIsEditorDoc(doc) ? editorDocToBlob(doc) : null));
+    if (!blob) return toast('File not found in storage.', true);
+    const url = URL.createObjectURL(blob);
+    if (download) {
+      const a = document.createElement('a');
+      a.href = url; a.download = doc.fileName || doc.title;
+      document.body.appendChild(a); a.click(); a.remove();
+    } else {
+      window.open(url, '_blank', 'noopener');
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  // Stand-alone HTML file for a document written in the editor.
+  function editorDocToBlob(doc) {
+    const pages = (doc.pages || []).map((html) => `<section class="page">${html}</section>`).join('\n');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(doc.title)}</title>
+<style>body{font-family:'Open Sans',Arial,sans-serif;max-width:800px;margin:40px auto;padding:0 20px}.page{margin-bottom:48px}</style>
+</head><body>${pages}</body></html>`;
+    return new Blob([html], { type: 'text/html' });
+  }
+
+  /* =========================================================
+     Rendering
+     ========================================================= */
+  function inFolderAndSearch() {
+    const q = state.query.trim().toLowerCase();
+    return DOCS.filter((d) =>
+      (state.folder === 'all' || d.type === state.folder) &&
+      (!q || `${d.title} ${d.ref} ${d.type} ${d.fileName}`.toLowerCase().includes(q))
+    );
+  }
+
+  const options = (list, selected) => list.map((v) => `<option${v === selected ? ' selected' : ''}>${esc(v)}</option>`).join('');
+
+  function render() {
+    const scoped = inFolderAndSearch();
+    const shown = scoped.filter((d) => state.filter === 'All' || d.status === state.filter);
+    const sel = shown.find((d) => d.id === state.selected) || shown[0] || null;
+    if (sel) state.selected = sel.id;
+
+    $('folders').innerHTML = FOLDERS.map((f) => {
+      const count = DOCS.filter((d) => f.id === 'all' || d.type === f.id).length;
+      return `<button type="button" class="folder" data-folder="${esc(f.id)}" aria-pressed="${state.folder === f.id}">
+        <span>${esc(f.label)}</span><span class="folder-count">${count}</span></button>`;
+    }).join('');
+
+    $('filters').innerHTML = STATUSES.map((s) => {
+      const count = scoped.filter((d) => s === 'All' || d.status === s).length;
+      return `<button type="button" class="chip" data-filter="${esc(s)}" aria-pressed="${state.filter === s}">
+        ${esc(s)}<span class="chip-count">${count}</span></button>`;
+    }).join('');
+
+    let emptyHtml;
+    if (!DOCS.length) {
+      emptyHtml = `<div class="empty"><h3>No documents yet</h3>
+        <p>Upload files or drop them here. They're saved in this browser and stay after you reload.</p>
+        <button type="button" class="btn btn-primary" data-action="upload">Upload documents</button></div>`;
+    } else {
+      emptyHtml = `<div class="empty"><h3>No documents match</h3><p>Try another status, folder or search term.</p></div>`;
+    }
+
+    $('rows').innerHTML = shown.length ? shown.map((d) => `
+      <button type="button" class="doc-row row-grid" data-id="${esc(d.id)}" aria-pressed="${!!sel && sel.id === d.id}">
+        <span class="doc-name">
+          <span class="doc-icon">${DOC_ICON}</span>
+          <span class="doc-text">
+            <span class="doc-title">${esc(d.title)}</span>
+            <span class="doc-meta">${esc(d.type)}, ${esc(d.ref)}</span>
+          </span>
+        </span>
+        <span>${badge(d.status)}</span>
+        <span class="cell-muted">${esc(formatDate(d.updatedAt))}</span>
+        <span class="owner"><span class="owner-dot">YO</span>${esc(d.owner)}</span>
+      </button>`).join('') : emptyHtml;
+
+    renderDetails(sel);
+  }
+
+  function renderDetails(sel) {
+    if (!sel) {
+      $('details').innerHTML = `<p class="cell-muted">${DOCS.length ? 'Select a document to see its details.' : 'Uploaded documents will show their details here.'}</p>`;
+      return;
+    }
+    const idx = STAGE_INDEX[sel.status] ?? 0;
+    const steps = STAGES.map((label, i) => {
+      const done = i < idx || (i === idx && sel.status === 'Granted');
+      const cls = done ? 'done' : (i === idx ? 'current' : '');
+      return `<li class="step ${cls}"><span class="step-dot">${done ? CHECK : ''}</span>${label}</li>`;
+    }).join('');
+
+    $('details').innerHTML = `
+      <div class="fade-in" style="display:flex;flex-direction:column;gap:24px" data-doc="${esc(sel.id)}">
+        <div class="details-head">
+          ${badge(sel.status)}
+          <label class="sr-only" for="titleInput">Title</label>
+          <input id="titleInput" class="title-input" value="${esc(sel.title)}" maxlength="200">
+          <p>${esc(sel.ref)}</p>
+        </div>
+        <div class="field-row">
+          <label class="field">Type<select id="typeSelect">${options(TYPES, sel.type)}</select></label>
+          <label class="field">Status<select id="statusSelect">${options(STATUS_LIST, sel.status)}</select></label>
+        </div>
+        <div class="progress">
+          <h3>Progress</h3>
+          <ol class="steps">${steps}</ol>
+        </div>
+        <dl class="facts">
+          <div class="fact"><dt>File</dt><dd>${esc(sel.fileName)}</dd></div>
+          <div class="fact"><dt>Size</dt><dd>${esc(formatSize(sel.size))}</dd></div>
+          <div class="fact"><dt>Added</dt><dd>${esc(formatDate(sel.createdAt))}</dd></div>
+          <div class="fact"><dt>Last edited</dt><dd>${esc(formatDate(sel.updatedAt))}</dd></div>
+        </dl>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" data-action="open">${patenterIsEditorDoc(sel) ? 'Open in editor' : 'Open'}</button>
+          <button type="button" class="btn-icon" data-action="download" aria-label="Download">${DOWNLOAD_ICON}</button>
+        </div>
+        <button type="button" class="btn btn-danger" data-action="delete">Delete document</button>
+      </div>`;
+  }
+
+  /* =========================================================
+     Events
+     ========================================================= */
+  $('folders').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-folder]');
+    if (b) { state.folder = b.dataset.folder; render(); }
+  });
+  $('filters').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-filter]');
+    if (b) { state.filter = b.dataset.filter; render(); }
+  });
+  $('rows').addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="upload"]')) return $('fileInput').click();
+    const b = e.target.closest('[data-id]');
+    if (b) {
+      state.selected = b.dataset.id; render();
+      document.querySelector(`[data-id="${CSS.escape(b.dataset.id)}"]`)?.focus();
+    }
+  });
+  $('rows').addEventListener('dblclick', (e) => {
+    const b = e.target.closest('[data-id]');
+    if (b) openDoc(b.dataset.id);
+  });
+  $('search').addEventListener('input', (e) => { state.query = e.target.value; render(); });
+
+  // Upload
+  $('uploadBtn').addEventListener('click', () => $('fileInput').click());
+  $('fileInput').addEventListener('change', async (e) => {
+    await addFiles(e.target.files);
+    e.target.value = ''; // allow re-selecting the same file
+  });
+
+  // Drag and drop onto the document list
+  const table = $('table');
+  let dragDepth = 0;
+  table.addEventListener('dragenter', (e) => {
+    if (!e.dataTransfer.types.includes('Files')) return;
+    e.preventDefault(); dragDepth++; table.classList.add('dragging');
+  });
+  table.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); });
+  table.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; table.classList.remove('dragging'); } });
+  table.addEventListener('drop', (e) => {
+    e.preventDefault(); dragDepth = 0; table.classList.remove('dragging');
+    addFiles(e.dataTransfer.files);
+  });
+
+  // Details pane: edits save straight to IndexedDB
+  const details = $('details');
+  details.addEventListener('change', (e) => {
+    const id = details.querySelector('[data-doc]')?.dataset.doc;
+    if (!id) return;
+    if (e.target.id === 'typeSelect') {
+      const type = e.target.value;
+      updateDoc(id, { type });
+    }
+    if (e.target.id === 'statusSelect') updateDoc(id, { status: e.target.value });
+    if (e.target.id === 'titleInput') {
+      const title = e.target.value.trim();
+      if (title) updateDoc(id, { title }).then(() => toast('Title saved'));
+      else render();
+    }
+  });
+  details.addEventListener('keydown', (e) => {
+    if (e.target.id === 'titleInput' && e.key === 'Enter') e.target.blur();
+    if (e.target.id === 'titleInput' && e.key === 'Escape') render();
+  });
+  details.addEventListener('click', (e) => {
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    const id = details.querySelector('[data-doc]')?.dataset.doc;
+    if (!action || !id) return;
+    if (action === 'open') openDoc(id);
+    if (action === 'download') openDoc(id, true);
+    if (action === 'delete') deleteDoc(id);
+  });
+
+  // Keep tabs in sync when another tab changes the data
+  window.addEventListener('focus', async () => { try { await loadDocs(); render(); } catch {} });
+  if (patenterChannel) patenterChannel.addEventListener('message', async () => { try { await loadDocs(); render(); } catch {} });
+  window.addEventListener('patenter-db-blocked', () => toast('Close other Patenter tabs so storage can update.', true));
+
+  /* =========================================================
+     Start
+     ========================================================= */
+  (async () => {
+    try {
+      // Ask the browser not to evict our data under storage pressure (best effort).
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      await loadDocs();
+    } catch (err) {
+      toast(`Storage unavailable: ${err.message}`, true);
+    }
+    render();
+  })();
+</script>
+</body>
+</html>

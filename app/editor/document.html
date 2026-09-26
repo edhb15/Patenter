@@ -1,0 +1,4230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patenter Editor</title>
+<link rel="icon" type="image/x-icon" href="../../images-and-other-branding/SmallSquareLogoJpg.jpg">
+<style>
+/* =========================================================
+   PATENTER DOCUMENT-STYLE EDITOR
+   Visual layer upgraded to match document.html.
+   Existing editor functions/IDs are intentionally preserved.
+========================================================= */
+
+:root {
+    --brand: #7c3aed;
+    --brand-dark: #6d28d9;
+    --brand-soft: #e9ddff;
+    --brand-border: #c8a9ff;
+
+    --app-bg: #e7e7e7;
+    --surface: #ffffff;
+    --surface-soft: #f8f8f8;
+    --border: #d5d5d5;
+    --border-light: #e3e3e3;
+    --text: #222222;
+    --muted: #777777;
+
+    --page-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+    --panel-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+    --modal-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+
+    --radius: 6px;
+    --toolbar-height: 54px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--app-bg);
+    color: var(--text);
+    overflow: hidden;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    user-select: none;
+}
+
+.app {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.topbar {
+    height: 54px;
+    flex-shrink: 0;
+
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 14px;
+    gap: 10px;
+
+    z-index: 1000;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.35px;
+    color: var(--brand);
+    padding-right: 10px;
+}
+
+.document-title {
+    width: 220px;
+    height: 34px;
+
+    border: 1px solid transparent;
+    outline: none;
+    background: transparent;
+
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+
+    padding: 7px 9px;
+    border-radius: var(--radius);
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.document-title:hover {
+    background: #f2f2f2;
+}
+
+.document-title:focus {
+    background: #f7f7f7;
+    border-color: #cfcfcf;
+}
+
+.save-status {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.top-spacer {
+    flex: 1;
+}
+
+.top-button {
+    height: 34px;
+
+    border: 1px solid #d0d0d0;
+    background: #ffffff;
+
+    border-radius: var(--radius);
+
+    padding: 0 11px;
+
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+.top-button:hover {
+    background: #f1f1f1;
+    border-color: #c4c4c4;
+}
+
+.top-button:active {
+    background: #e9e9e9;
+}
+
+.top-button:focus-visible {
+    outline: 2px solid rgba(124, 58, 237, 0.25);
+    outline-offset: 1px;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.toolbar {
+    min-height: var(--toolbar-height);
+    flex-shrink: 0;
+
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+
+    display: flex;
+    align-items: center;
+
+    gap: 4px;
+    padding: 7px 10px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    z-index: 900;
+
+    scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+.tool-button {
+    min-width: 34px;
+    width: 34px;
+    height: 34px;
+
+    border: 1px solid transparent;
+    background: transparent;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+    color: #333;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease,
+        color 0.12s ease;
+}
+
+.tool-button:hover {
+    background: #eeeeee;
+    border-color: #dddddd;
+}
+
+.tool-button:active {
+    background: #e5e5e5;
+}
+
+.tool-button:focus-visible {
+    outline: 2px solid rgba(124, 58, 237, 0.25);
+    outline-offset: 1px;
+}
+
+.tool-button.active {
+    background: var(--brand-soft);
+    border-color: var(--brand-border);
+    color: var(--brand-dark);
+}
+
+.separator {
+    width: 1px;
+    height: 27px;
+    flex: 0 0 1px;
+
+    background: #dddddd;
+
+    margin: 0 5px;
+}
+
+.tool-select {
+    height: 34px;
+
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+
+    background: #ffffff;
+
+    padding: 0 7px;
+
+    font-size: 13px;
+    color: #333;
+
+    cursor: pointer;
+    outline: none;
+
+    transition:
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+.tool-select:hover {
+    border-color: #bdbdbd;
+}
+
+.tool-select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.10);
+}
+
+.font-select {
+    width: 130px;
+}
+
+.size-select {
+    width: 65px;
+}
+
+/* =========================================================
+   COLOR BUTTONS
+========================================================= */
+
+.color-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.color-button {
+    position: relative;
+}
+
+.color-line {
+    position: absolute;
+
+    bottom: 4px;
+    left: 8px;
+    right: 8px;
+
+    height: 3px;
+    border-radius: 2px;
+
+    background: #000000;
+}
+
+/* =========================================================
+   EDITOR AREA
+========================================================= */
+
+.editor-area {
+    flex: 1;
+
+    overflow: auto;
+
+    padding: 40px 20px 100px;
+
+    scroll-behavior: smooth;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #e7e7e7 0,
+            #e7e7e7 100%
+        );
+}
+
+.editor-area::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.editor-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.editor-area::-webkit-scrollbar-thumb {
+    background: #c8c8c8;
+    border-radius: 8px;
+    border: 3px solid #e7e7e7;
+}
+
+.editor-area::-webkit-scrollbar-thumb:hover {
+    background: #adadad;
+}
+
+/* =========================================================
+   DOCUMENT
+========================================================= */
+
+#document {
+    width: 210mm;
+
+    margin: 0 auto;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 25px;
+
+    transform-origin: top center;
+    transition: margin-bottom 0.12s ease;
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.page {
+    width: 210mm;
+    height: 297mm;
+
+    flex-shrink: 0;
+
+    background: #ffffff;
+
+    position: relative;
+
+    padding:
+        25mm
+        22mm
+        25mm
+        22mm;
+
+    box-shadow: var(--page-shadow);
+
+    overflow: hidden;
+
+    border: 1px solid rgba(0, 0, 0, 0.025);
+
+    transition:
+        box-shadow 0.15s ease,
+        outline 0.15s ease;
+}
+
+.page:focus-within {
+    box-shadow:
+        var(--page-shadow),
+        0 0 0 2px rgba(124, 58, 237, 0.08);
+}
+
+/* =========================================================
+   PAGE CONTENT
+========================================================= */
+
+.page-content {
+    width: 100%;
+    height: 100%;
+
+    outline: none;
+
+    overflow: hidden;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+
+    line-height: 1.5;
+
+    color: #222222;
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+
+    caret-color: var(--brand);
+}
+
+.page-content:focus {
+    outline: none;
+}
+
+.page-content p {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.page-content h1 {
+    font-size: 32px;
+    line-height: 1.2;
+    margin: 0 0 18px;
+    font-weight: 700;
+}
+
+.page-content h2 {
+    font-size: 25px;
+    line-height: 1.25;
+    margin: 0 0 15px;
+    font-weight: 700;
+}
+
+.page-content h3 {
+    font-size: 20px;
+    line-height: 1.3;
+    margin: 0 0 12px;
+    font-weight: 700;
+}
+
+.page-content ul,
+.page-content ol {
+    margin-top: 0;
+    margin-bottom: 12px;
+    padding-left: 28px;
+}
+
+.page-content li {
+    margin-bottom: 4px;
+}
+
+.page-content blockquote {
+    margin: 12px 0;
+    padding: 3px 0 3px 15px;
+    border-left: 4px solid var(--brand);
+    color: #555555;
+}
+
+.page-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.page-content img,
+.page-content .editor-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0;
+}
+
+.page-content hr {
+    border: 0;
+    border-top: 1px solid #cccccc;
+    margin: 18px 0;
+}
+
+.page-content pre,
+.page-content code {
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+}
+
+.page-content code {
+    background: #f1f1f1;
+    border-radius: 4px;
+    padding: 1px 5px;
+}
+
+.page-content pre {
+    background: #f5f5f5;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    padding: 12px;
+    white-space: pre-wrap;
+}
+
+/* =========================================================
+   PAGE PLACEHOLDER
+========================================================= */
+
+.page-content:empty::before {
+    content: "Start typing...";
+    color: #aaaaaa;
+    pointer-events: none;
+}
+
+/* =========================================================
+   PAGE NUMBER
+========================================================= */
+
+.page-number {
+    position: absolute;
+
+    bottom: 9mm;
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    font-size: 11px;
+    color: #888888;
+
+    pointer-events: none;
+}
+
+/* =========================================================
+   STATUS BAR
+========================================================= */
+
+.statusbar {
+    height: 30px;
+    flex-shrink: 0;
+
+    background: #ffffff;
+    border-top: 1px solid var(--border);
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 14px;
+
+    font-size: 12px;
+    color: #666666;
+
+    gap: 20px;
+
+    z-index: 950;
+}
+
+.status-spacer {
+    flex: 1;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.zoom-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    font-size: 14px;
+
+    width: 22px;
+    height: 22px;
+
+    border-radius: 4px;
+    color: #555555;
+}
+
+.zoom-button:hover {
+    background: #eeeeee;
+    color: var(--brand-dark);
+}
+
+#zoomText {
+    min-width: 42px;
+    text-align: center;
+}
+
+/* =========================================================
+   FIND / REPLACE
+========================================================= */
+
+.find-panel {
+    position: fixed;
+
+    top: 118px;
+    right: 20px;
+
+    width: 360px;
+
+    background: #ffffff;
+
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+
+    box-shadow: var(--panel-shadow);
+
+    padding: 12px;
+
+    z-index: 2000;
+
+    display: none;
+}
+
+.find-panel.open {
+    display: block;
+}
+
+.find-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.find-row:last-of-type {
+    margin-bottom: 10px;
+}
+
+.find-row input {
+    flex: 1;
+
+    min-width: 0;
+    height: 34px;
+
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+
+    padding: 0 9px;
+
+    outline: none;
+
+    font-size: 13px;
+}
+
+.find-row input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.10);
+}
+
+.find-row button {
+    height: 34px;
+
+    border: 1px solid #cccccc;
+    background: #ffffff;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    padding: 0 9px;
+
+    font-size: 13px;
+    color: #333333;
+
+    white-space: nowrap;
+}
+
+.find-row button:hover {
+    background: #eeeeee;
+}
+
+.find-row button:active {
+    background: #e4e4e4;
+}
+
+.find-info {
+    font-size: 12px;
+    color: #777777;
+}
+
+/* =========================================================
+   LINK MODAL
+========================================================= */
+
+.modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.35);
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 3000;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal {
+    width: 420px;
+    max-width: calc(100vw - 30px);
+
+    background: #ffffff;
+
+    border-radius: 10px;
+
+    padding: 22px;
+
+    box-shadow: var(--modal-shadow);
+}
+
+.modal h2 {
+    margin: 0 0 15px;
+    font-size: 20px;
+}
+
+.modal label {
+    display: block;
+
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #444444;
+}
+
+.modal input {
+    width: 100%;
+
+    height: 38px;
+
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+
+    padding: 0 10px;
+
+    margin-bottom: 15px;
+
+    outline: none;
+}
+
+.modal input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.10);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.modal-actions button {
+    height: 36px;
+
+    padding: 0 14px;
+
+    border-radius: 6px;
+
+    border: 1px solid #cccccc;
+
+    background: #ffffff;
+
+    cursor: pointer;
+}
+
+.modal-actions button:hover {
+    background: #eeeeee;
+}
+
+.modal-actions button.primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #ffffff;
+}
+
+.modal-actions button.primary:hover {
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+}
+
+/* =========================================================
+   DOCUMENTS LIBRARY (IndexedDB)
+========================================================= */
+
+.library-modal {
+    width: 560px;
+    max-height: min(640px, calc(100vh - 40px));
+    display: flex;
+    flex-direction: column;
+}
+
+.library-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.library-header h2 {
+    margin: 0;
+}
+
+.library-header .library-new {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid var(--brand);
+    background: var(--brand);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.library-header .library-new:hover {
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+}
+
+.modal input.library-search {
+    margin-bottom: 10px;
+}
+
+.library-list {
+    flex: 1;
+    min-height: 120px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.library-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+}
+
+.library-item:last-child {
+    border-bottom: none;
+}
+
+.library-item:hover,
+.library-item:focus-visible {
+    background: #f6f2ff;
+    outline: none;
+}
+
+.library-item.current {
+    background: var(--brand-soft);
+}
+
+.library-item-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.library-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.library-item-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.library-item-snippet {
+    font-size: 12px;
+    color: #555555;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.library-delete {
+    flex-shrink: 0;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #a33;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.library-delete:hover {
+    background: #fdecec;
+    border-color: #f2c4c4;
+}
+
+.library-empty {
+    padding: 30px 12px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.library-actions {
+    justify-content: space-between;
+}
+
+.library-actions .left {
+    display: flex;
+    gap: 8px;
+}
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
+
+body.fullscreen .topbar {
+    display: none;
+}
+
+body.fullscreen .toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+body.fullscreen .editor-area {
+    padding-top: 75px;
+}
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print {
+    body {
+        background: #ffffff;
+        overflow: visible;
+    }
+
+    .topbar,
+    .toolbar,
+    .statusbar,
+    .find-panel,
+    .modal-overlay {
+        display: none !important;
+    }
+
+    .editor-area {
+        padding: 0;
+        overflow: visible;
+        background: #ffffff;
+    }
+
+    #document {
+        width: auto;
+        gap: 0;
+        transform: none !important;
+        margin-bottom: 0 !important;
+    }
+
+    .page {
+        margin: 0;
+        box-shadow: none;
+        border: 0;
+
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .page:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+    .document-title {
+        width: 150px;
+    }
+
+    .brand {
+        display: none;
+    }
+
+    .editor-area {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .find-panel {
+        left: 10px;
+        right: 10px;
+        top: 118px;
+        width: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        gap: 5px;
+        padding: 0 8px;
+    }
+
+    .save-status {
+        display: none;
+    }
+
+    .top-button {
+        padding: 0 8px;
+    }
+
+    .editor-area {
+        padding-top: 20px;
+    }
+}
+</style>
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+<!-- =====================================================
+     TOP BAR
+===================================================== -->
+
+<div class="topbar">
+
+    <div class="brand">
+        Patenter
+    </div>
+
+    <input
+        id="documentTitle"
+        class="document-title"
+        value="Untitled document"
+        aria-label="Document title"
+    >
+
+    <span
+        id="saveStatus"
+        class="save-status"
+    >
+        Saved
+    </span>
+
+    <div class="top-spacer"></div>
+
+    <button
+        class="top-button"
+        onclick="newDocument()"
+    >
+        New
+    </button>
+
+    <button
+        class="top-button"
+        onclick="saveNow()"
+        title="Save to this browser (Ctrl+S)"
+    >
+        Save
+    </button>
+
+    <button
+        class="top-button"
+        onclick="openLibrary()"
+        title="Open a saved document"
+    >
+        Documents
+    </button>
+
+    <button
+        class="top-button"
+        onclick="window.print()"
+    >
+        Print
+    </button>
+
+    <button
+        class="top-button"
+        onclick="toggleFullscreen()"
+    >
+        Fullscreen
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     TOOLBAR
+===================================================== -->
+
+<div class="toolbar">
+
+    <!-- Undo / redo -->
+
+    <button
+        class="tool-button"
+        onclick="exec('undo')"
+        title="Undo"
+    >
+        ↶
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('redo')"
+        title="Redo"
+    >
+        ↷
+    </button>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Style -->
+
+    <select
+        id="formatSelect"
+        class="tool-select"
+        onchange="changeFormat(this.value)"
+    >
+        <option value="p">Normal text</option>
+        <option value="h1">Heading 1</option>
+        <option value="h2">Heading 2</option>
+        <option value="h3">Heading 3</option>
+        <option value="blockquote">Quote</option>
+    </select>
+
+
+    <!-- Font -->
+
+    <select
+        class="tool-select font-select"
+        onchange="changeFont(this.value)"
+    >
+        <option value="Arial">Arial</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Tahoma">Tahoma</option>
+        <option value="Courier New">Courier New</option>
+        <option value="Trebuchet MS">Trebuchet MS</option>
+        <option value="Impact">Impact</option>
+    </select>
+
+
+    <!-- Font size -->
+
+    <select
+        class="tool-select size-select"
+        onchange="changeFontSize(this.value)"
+    >
+        <option value="12">12</option>
+        <option value="14">14</option>
+        <option value="16" selected>16</option>
+        <option value="18">18</option>
+        <option value="20">20</option>
+        <option value="24">24</option>
+        <option value="28">28</option>
+        <option value="32">32</option>
+        <option value="40">40</option>
+        <option value="48">48</option>
+    </select>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Text formatting -->
+
+    <button
+        class="tool-button"
+        onclick="exec('bold')"
+        title="Bold"
+    >
+        <b>B</b>
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('italic')"
+        title="Italic"
+    >
+        <i>I</i>
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('underline')"
+        title="Underline"
+    >
+        <u>U</u>
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('strikeThrough')"
+        title="Strikethrough"
+    >
+        <s>S</s>
+    </button>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Alignment -->
+
+    <button
+        class="tool-button"
+        onclick="exec('justifyLeft')"
+        title="Align left"
+    >
+        ☰
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('justifyCenter')"
+        title="Center"
+    >
+        ≡
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('justifyRight')"
+        title="Align right"
+    >
+        ☷
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('justifyFull')"
+        title="Justify"
+    >
+        ▤
+    </button>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Lists -->
+
+    <button
+        class="tool-button"
+        onclick="exec('insertUnorderedList')"
+        title="Bullet list"
+    >
+        •☰
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('insertOrderedList')"
+        title="Numbered list"
+    >
+        1.
+    </button>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Indent -->
+
+    <button
+        class="tool-button"
+        onclick="exec('outdent')"
+        title="Decrease indent"
+    >
+        ⇤
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="exec('indent')"
+        title="Increase indent"
+    >
+        ⇥
+    </button>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Link -->
+
+    <button
+        class="tool-button"
+        onclick="insertLink()"
+        title="Insert link"
+    >
+        🔗
+    </button>
+
+
+    <!-- Image -->
+
+    <button
+        class="tool-button"
+        onclick="insertImage()"
+        title="Insert image"
+    >
+        🖼
+    </button>
+
+
+    <div class="separator"></div>
+
+
+    <!-- Text color -->
+
+    <div class="color-wrapper">
+
+        <button
+            class="tool-button color-button"
+            onclick="openTextColor()"
+            title="Text color"
+        >
+            A
+            <span
+                id="textColorLine"
+                class="color-line"
+            ></span>
+        </button>
+
+        <input
+            id="textColor"
+            type="color"
+            value="#000000"
+            style="
+                position:absolute;
+                opacity:0;
+                pointer-events:none;
+            "
+        >
+
+    </div>
+
+
+    <!-- Highlight -->
+
+    <div class="color-wrapper">
+
+        <button
+            class="tool-button color-button"
+            onclick="openHighlightColor()"
+            title="Highlight"
+        >
+            🖍
+            <span
+                id="highlightColorLine"
+                class="color-line"
+                style="background:#ffff00"
+            ></span>
+        </button>
+
+        <input
+            id="highlightColor"
+            type="color"
+            value="#ffff00"
+            style="
+                position:absolute;
+                opacity:0;
+                pointer-events:none;
+            "
+        >
+
+    </div>
+
+
+    <div class="separator"></div>
+
+
+    <!-- More -->
+
+    <button
+        class="tool-button"
+        onclick="insertHorizontalLine()"
+        title="Horizontal line"
+    >
+        ―
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="clearFormatting()"
+        title="Clear formatting"
+    >
+        Tx
+    </button>
+
+    <button
+        class="tool-button"
+        onclick="toggleFind()"
+        title="Find and replace"
+    >
+        🔎
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     FIND PANEL
+===================================================== -->
+
+<div
+    id="findPanel"
+    class="find-panel"
+>
+
+    <div class="find-row">
+
+        <input
+            id="findInput"
+            placeholder="Find..."
+            oninput="findText()"
+        >
+
+        <button onclick="findPrevious()">
+            ↑
+        </button>
+
+        <button onclick="findNext()">
+            ↓
+        </button>
+
+        <button onclick="closeFind()">
+            ×
+        </button>
+
+    </div>
+
+    <div class="find-row">
+
+        <input
+            id="replaceInput"
+            placeholder="Replace with..."
+        >
+
+        <button onclick="replaceCurrent()">
+            Replace
+        </button>
+
+        <button onclick="replaceAll()">
+            All
+        </button>
+
+    </div>
+
+    <div
+        id="findInfo"
+        class="find-info"
+    >
+        Search the document
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     EDITOR
+===================================================== -->
+
+<div
+    id="editorArea"
+    class="editor-area"
+>
+
+    <div id="document">
+
+        <div class="page">
+
+            <div
+                class="page-content"
+                contenteditable="true"
+                spellcheck="true"
+            ></div>
+
+            <div class="page-number">
+                1
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     STATUS BAR
+===================================================== -->
+
+<div class="statusbar">
+
+    <span id="wordCount">
+        0 words
+    </span>
+
+    <span id="characterCount">
+        0 characters
+    </span>
+
+    <span id="pageCount">
+        1 page
+    </span>
+
+    <div class="status-spacer"></div>
+
+    <div class="zoom-controls">
+
+        <button
+            class="zoom-button"
+            onclick="changeZoom(-10)"
+        >
+            −
+        </button>
+
+        <span id="zoomText">
+            100%
+        </span>
+
+        <button
+            class="zoom-button"
+            onclick="changeZoom(10)"
+        >
+            +
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     LINK MODAL
+===================================================== -->
+
+<div
+    id="linkModal"
+    class="modal-overlay"
+>
+
+    <div class="modal">
+
+        <h2>Insert link</h2>
+
+        <label>
+            URL
+        </label>
+
+        <input
+            id="linkURL"
+            type="url"
+            placeholder="https://example.com"
+        >
+
+        <div class="modal-actions">
+
+            <button onclick="closeLinkModal()">
+                Cancel
+            </button>
+
+            <button
+                class="primary"
+                onclick="confirmLink()"
+            >
+                Insert
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     DOCUMENTS LIBRARY MODAL
+===================================================== -->
+
+<div
+    id="libraryModal"
+    class="modal-overlay"
+>
+
+    <div class="modal library-modal">
+
+        <div class="library-header">
+            <h2>Your documents</h2>
+            <button
+                class="library-new"
+                onclick="closeLibrary(); newDocument();"
+            >
+                New document
+            </button>
+        </div>
+
+        <input
+            id="librarySearch"
+            class="library-search"
+            type="search"
+            placeholder="Search by title or text"
+            aria-label="Search documents"
+        >
+
+        <div
+            id="libraryList"
+            class="library-list"
+        ></div>
+
+        <div class="modal-actions library-actions">
+
+            <div class="left">
+                <button onclick="loadFile()" title="Import a .json file saved with Download">
+                    Import file
+                </button>
+                <button onclick="saveFile()" title="Download the open document as .json">
+                    Download
+                </button>
+            </div>
+
+            <button onclick="closeLibrary()">
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     SCRIPT
+===================================================== -->
+
+<script>
+
+/* =========================================================
+   GLOBALS
+========================================================= */
+
+const documentContainer =
+    document.getElementById("document");
+
+let savedRange = null;
+
+let zoom = 100;
+
+let autosaveTimer = null;
+
+
+/* =========================================================
+   PAGE DIMENSIONS
+========================================================= */
+
+const PAGE_CONTENT_HEIGHT_MM = 247;
+
+
+/* =========================================================
+   GET PAGES
+========================================================= */
+
+function getPages() {
+
+    return Array.from(
+        document.querySelectorAll(".page")
+    );
+}
+
+
+/* =========================================================
+   GET CONTENT
+========================================================= */
+
+function getContentPages() {
+
+    return Array.from(
+        document.querySelectorAll(".page-content")
+    );
+}
+
+
+/* =========================================================
+   EXECUTE COMMAND
+========================================================= */
+
+function exec(command, value = null) {
+
+    restoreSelection();
+
+    document.execCommand(
+        command,
+        false,
+        value
+    );
+
+    updateEverything();
+
+    saveSelection();
+}
+
+
+/* =========================================================
+   FORMAT
+========================================================= */
+
+function changeFormat(format) {
+
+    restoreSelection();
+
+    document.execCommand(
+        "formatBlock",
+        false,
+        format
+    );
+
+    updateEverything();
+
+    saveSelection();
+}
+
+
+/* =========================================================
+   FONT
+========================================================= */
+
+function changeFont(font) {
+
+    restoreSelection();
+
+    document.execCommand(
+        "fontName",
+        false,
+        font
+    );
+
+    updateEverything();
+
+    saveSelection();
+}
+
+
+/* =========================================================
+   FONT SIZE
+========================================================= */
+
+function changeFontSize(size) {
+
+    restoreSelection();
+
+    document.execCommand(
+        "fontSize",
+        false,
+        "7"
+    );
+
+    const fonts =
+        document.querySelectorAll(
+            'font[size="7"]'
+        );
+
+    fonts.forEach(font => {
+
+        font.removeAttribute("size");
+
+        font.style.fontSize =
+            size + "px";
+
+    });
+
+    updateEverything();
+
+    saveSelection();
+}
+
+
+/* =========================================================
+   SAVE SELECTION
+========================================================= */
+
+function saveSelection() {
+
+    const selection =
+        window.getSelection();
+
+    if (
+        selection &&
+        selection.rangeCount > 0
+    ) {
+
+        const range =
+            selection.getRangeAt(0);
+
+        const parentElement =
+            range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                ? range.commonAncestorContainer
+                : range.commonAncestorContainer.parentElement;
+
+        if (
+            parentElement &&
+            parentElement.closest(".page-content")
+        ) {
+
+            savedRange = range.cloneRange();
+        }
+    }
+}
+
+
+/* =========================================================
+   RESTORE SELECTION
+========================================================= */
+
+function restoreSelection() {
+
+    if (!savedRange) {
+        return;
+    }
+
+    const selection =
+        window.getSelection();
+
+    selection.removeAllRanges();
+
+    selection.addRange(
+        savedRange
+    );
+}
+
+
+/* =========================================================
+   SELECTION EVENTS
+========================================================= */
+
+document.addEventListener(
+    "selectionchange",
+    saveSelection
+);
+
+
+/* =========================================================
+   CREATE PAGE
+========================================================= */
+
+function createPage() {
+
+    const page =
+        document.createElement("div");
+
+    page.className = "page";
+
+    page.innerHTML = `
+        <div
+            class="page-content"
+            contenteditable="true"
+            spellcheck="true"
+        ></div>
+
+        <div class="page-number"></div>
+    `;
+
+    documentContainer.appendChild(page);
+
+    return page;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+function updatePagination() {
+
+    /*
+        Pagination strategy:
+
+        1. Combine overflowing content forward.
+        2. Split large text blocks if necessary.
+        3. Remove unnecessary empty pages.
+    */
+
+    let pages = getPages();
+
+    /*
+        Check every page.
+    */
+
+    for (let i = 0; i < pages.length; i++) {
+
+        const content =
+            pages[i].querySelector(
+                ".page-content"
+            );
+
+        if (!content) continue;
+
+        /*
+            Move overflowing block elements.
+        */
+
+        while (
+            content.scrollHeight >
+            content.clientHeight + 2
+        ) {
+
+            const children =
+                Array.from(
+                    content.children
+                );
+
+            /*
+                No children means the page contains
+                direct text. Split it.
+            */
+
+            if (children.length === 0) {
+
+                splitTextNode(
+                    content,
+                    i
+                );
+
+                break;
+            }
+
+            const last =
+                children[
+                    children.length - 1
+                ];
+
+            let nextPage =
+                pages[i + 1];
+
+            if (!nextPage) {
+                nextPage =
+                    createPage();
+
+                pages =
+                    getPages();
+            }
+
+            const nextContent =
+                nextPage.querySelector(
+                    ".page-content"
+                );
+
+            /*
+                Try to split large elements instead
+                of moving the entire element.
+            */
+
+            if (
+                last.offsetHeight >
+                content.clientHeight * 0.75
+            ) {
+
+                if (
+                    splitElement(
+                        last,
+                        content,
+                        nextContent
+                    )
+                ) {
+                    continue;
+                }
+            }
+
+            nextContent.prepend(last);
+        }
+    }
+
+    /*
+        Clean empty pages.
+    */
+
+    cleanupPages();
+
+    /*
+        Update numbers.
+    */
+
+    updatePageNumbers();
+}
+
+
+/* =========================================================
+   SPLIT LARGE ELEMENT
+========================================================= */
+
+function splitElement(
+    element,
+    currentContent,
+    nextContent
+) {
+
+    /*
+        Only split paragraphs/headings/list items
+        containing text.
+    */
+
+    const tag =
+        element.tagName.toLowerCase();
+
+    if (
+        ![
+            "p",
+            "div",
+            "h1",
+            "h2",
+            "h3",
+            "blockquote"
+        ].includes(tag)
+    ) {
+        return false;
+    }
+
+    const text =
+        element.innerText;
+
+    if (!text.trim()) {
+        return false;
+    }
+
+    const words =
+        text.split(/\s+/);
+
+    if (words.length < 8) {
+        return false;
+    }
+
+    const originalHTML =
+        element.innerHTML;
+
+    let low = 1;
+    let high = words.length - 1;
+
+    let best = 0;
+
+    /*
+        Binary search for the amount of text
+        that fits.
+    */
+
+    while (low <= high) {
+
+        const middle =
+            Math.floor(
+                (low + high) / 2
+            );
+
+        const testText =
+            words
+                .slice(0, middle)
+                .join(" ");
+
+        element.innerText =
+            testText;
+
+        if (
+            currentContent.scrollHeight <=
+            currentContent.clientHeight + 2
+        ) {
+
+            best = middle;
+
+            low = middle + 1;
+
+        } else {
+
+            high = middle - 1;
+        }
+    }
+
+    if (best <= 0) {
+
+        element.innerHTML =
+            originalHTML;
+
+        return false;
+    }
+
+    const firstText =
+        words
+            .slice(0, best)
+            .join(" ");
+
+    const secondText =
+        words
+            .slice(best)
+            .join(" ");
+
+    element.innerText =
+        firstText;
+
+    const second =
+        element.cloneNode(false);
+
+    second.innerText =
+        secondText;
+
+    nextContent.prepend(second);
+
+    return true;
+}
+
+
+/* =========================================================
+   SPLIT DIRECT TEXT
+========================================================= */
+
+function splitTextNode(
+    content,
+    pageIndex
+) {
+
+    const text =
+        content.innerText;
+
+    if (!text.trim()) {
+        return;
+    }
+
+    const words =
+        text.split(/\s+/);
+
+    if (words.length < 2) {
+        return;
+    }
+
+    let nextPage =
+        getPages()[pageIndex + 1];
+
+    if (!nextPage) {
+        nextPage =
+            createPage();
+    }
+
+    const nextContent =
+        nextPage.querySelector(
+            ".page-content"
+        );
+
+    /*
+        Find approximate split.
+    */
+
+    let low = 1;
+    let high = words.length - 1;
+    let best = 1;
+
+    while (low <= high) {
+
+        const middle =
+            Math.floor(
+                (low + high) / 2
+            );
+
+        content.innerText =
+            words
+                .slice(0, middle)
+                .join(" ");
+
+        if (
+            content.scrollHeight <=
+            content.clientHeight + 2
+        ) {
+
+            best = middle;
+            low = middle + 1;
+
+        } else {
+
+            high = middle - 1;
+        }
+    }
+
+    content.innerText =
+        words
+            .slice(0, best)
+            .join(" ");
+
+    nextContent.innerText =
+        words
+            .slice(best)
+            .join(" ");
+}
+
+
+/* =========================================================
+   CLEANUP
+========================================================= */
+
+function cleanupPages() {
+
+    const pages =
+        getPages();
+
+    /*
+        Remove empty pages except the first.
+    */
+
+    for (
+        let i = pages.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const content =
+            pages[i]
+                .querySelector(
+                    ".page-content"
+                );
+
+        if (
+            !content.innerHTML.trim()
+        ) {
+
+            pages[i].remove();
+        }
+    }
+
+    /*
+        If no pages exist, create one.
+    */
+
+    if (
+        getPages().length === 0
+    ) {
+
+        createPage();
+    }
+}
+
+
+/* =========================================================
+   PAGE NUMBERS
+========================================================= */
+
+function updatePageNumbers() {
+
+    const pages =
+        getPages();
+
+    pages.forEach(
+        (page, index) => {
+
+            const number =
+                page.querySelector(
+                    ".page-number"
+                );
+
+            number.textContent =
+                `Page ${index + 1} of ${pages.length}`;
+        }
+    );
+
+    document.getElementById(
+        "pageCount"
+    ).textContent =
+        `${pages.length} ${
+            pages.length === 1
+                ? "page"
+                : "pages"
+        }`;
+}
+
+
+/* =========================================================
+   WORD COUNT
+========================================================= */
+
+function updateCounts() {
+
+    let text = "";
+
+    getContentPages().forEach(
+        content => {
+
+            text +=
+                content.innerText +
+                " ";
+        }
+    );
+
+    const clean =
+        text.trim();
+
+    const words =
+        clean
+            ? clean.split(/\s+/).length
+            : 0;
+
+    const characters =
+        text.length;
+
+    document.getElementById(
+        "wordCount"
+    ).textContent =
+        `${words} ${
+            words === 1
+                ? "word"
+                : "words"
+        }`;
+
+    document.getElementById(
+        "characterCount"
+    ).textContent =
+        `${characters} characters`;
+}
+
+
+/* =========================================================
+   UPDATE EVERYTHING
+========================================================= */
+
+function updateEverything() {
+
+    updatePagination();
+
+    updateCounts();
+
+    updatePageNumbers();
+
+    scheduleAutosave();
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+document.addEventListener(
+    "input",
+    event => {
+
+        if (
+            event.target.classList.contains(
+                "page-content"
+            )
+        ) {
+
+            updateEverything();
+        }
+
+        if (
+            event.target.id ===
+            "documentTitle"
+        ) {
+
+            scheduleAutosave();
+        }
+    }
+);
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        const modifier =
+            event.ctrlKey ||
+            event.metaKey;
+
+        if (!modifier) {
+            return;
+        }
+
+        const key =
+            event.key.toLowerCase();
+
+        /*
+            Bold
+        */
+
+        if (key === "b") {
+
+            event.preventDefault();
+
+            exec("bold");
+        }
+
+        /*
+            Italic
+        */
+
+        if (key === "i") {
+
+            event.preventDefault();
+
+            exec("italic");
+        }
+
+        /*
+            Underline
+        */
+
+        if (key === "u") {
+
+            event.preventDefault();
+
+            exec("underline");
+        }
+
+        /*
+            Save
+        */
+
+        if (key === "s") {
+
+            event.preventDefault();
+
+            saveNow();
+        }
+
+        /*
+            Find
+        */
+
+        if (key === "f") {
+
+            event.preventDefault();
+
+            toggleFind();
+        }
+
+        /*
+            Print
+        */
+
+        if (key === "p") {
+
+            event.preventDefault();
+
+            window.print();
+        }
+    }
+);
+
+
+/* =========================================================
+   TEXT COLOR
+========================================================= */
+
+function openTextColor() {
+
+    restoreSelection();
+
+    const input =
+        document.getElementById(
+            "textColor"
+        );
+
+    input.click();
+}
+
+document.getElementById(
+    "textColor"
+).addEventListener(
+    "input",
+    function() {
+
+        restoreSelection();
+
+        document.execCommand(
+            "foreColor",
+            false,
+            this.value
+        );
+
+        document.getElementById(
+            "textColorLine"
+        ).style.background =
+            this.value;
+
+        updateEverything();
+    }
+);
+
+
+/* =========================================================
+   HIGHLIGHT
+========================================================= */
+
+function openHighlightColor() {
+
+    restoreSelection();
+
+    document.getElementById(
+        "highlightColor"
+    ).click();
+}
+
+document.getElementById(
+    "highlightColor"
+).addEventListener(
+    "input",
+    function() {
+
+        restoreSelection();
+
+        document.execCommand(
+            "hiliteColor",
+            false,
+            this.value
+        );
+
+        document.getElementById(
+            "highlightColorLine"
+        ).style.background =
+            this.value;
+
+        updateEverything();
+    }
+);
+
+
+/* =========================================================
+   CLEAR FORMATTING
+========================================================= */
+
+function clearFormatting() {
+
+    restoreSelection();
+
+    document.execCommand(
+        "removeFormat"
+    );
+
+    document.execCommand(
+        "formatBlock",
+        false,
+        "p"
+    );
+
+    updateEverything();
+}
+
+
+/* =========================================================
+   HORIZONTAL LINE
+========================================================= */
+
+function insertHorizontalLine() {
+
+    restoreSelection();
+
+    document.execCommand(
+        "insertHorizontalRule"
+    );
+
+    updateEverything();
+}
+
+
+/* =========================================================
+   LINK
+========================================================= */
+
+function insertLink() {
+
+    saveSelection();
+
+    document.getElementById(
+        "linkURL"
+    ).value = "";
+
+    document.getElementById(
+        "linkModal"
+    ).classList.add("open");
+
+    setTimeout(
+        () => {
+            document.getElementById(
+                "linkURL"
+            ).focus();
+        },
+        50
+    );
+}
+
+function closeLinkModal() {
+
+    document.getElementById(
+        "linkModal"
+    ).classList.remove("open");
+}
+
+function confirmLink() {
+
+    const url =
+        document.getElementById(
+            "linkURL"
+        ).value.trim();
+
+    if (!url) {
+        return;
+    }
+
+    restoreSelection();
+
+    document.execCommand(
+        "createLink",
+        false,
+        url
+    );
+
+    closeLinkModal();
+
+    updateEverything();
+}
+
+
+/* =========================================================
+   IMAGE
+========================================================= */
+
+function insertImage() {
+
+    const input =
+        document.createElement("input");
+
+    input.type = "file";
+
+    input.accept =
+        "image/*";
+
+    input.onchange =
+        function() {
+
+            const file =
+                input.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                function(event) {
+
+                    restoreSelection();
+
+                    document.execCommand(
+                        "insertImage",
+                        false,
+                        event.target.result
+                    );
+
+                    /*
+                        Style inserted images.
+                    */
+
+                    const images =
+                        document.querySelectorAll(
+                            "img"
+                        );
+
+                    images.forEach(
+                        image => {
+
+                            image.classList.add(
+                                "editor-image"
+                            );
+                        }
+                    );
+
+                    updateEverything();
+                };
+
+            reader.readAsDataURL(file);
+        };
+
+    input.click();
+}
+
+
+/* =========================================================
+   FIND PANEL
+========================================================= */
+
+function toggleFind() {
+
+    const panel =
+        document.getElementById(
+            "findPanel"
+        );
+
+    panel.classList.toggle("open");
+
+    if (
+        panel.classList.contains("open")
+    ) {
+
+        document.getElementById(
+            "findInput"
+        ).focus();
+    }
+}
+
+function closeFind() {
+
+    document.getElementById(
+        "findPanel"
+    ).classList.remove("open");
+}
+
+
+/* =========================================================
+   FIND TEXT
+========================================================= */
+
+function findText() {
+
+    const query =
+        document.getElementById(
+            "findInput"
+        ).value;
+
+    if (!query) {
+
+        document.getElementById(
+            "findInfo"
+        ).textContent =
+            "Search the document";
+
+        return;
+    }
+
+    const text =
+        getContentPages()
+            .map(
+                page => page.innerText
+            )
+            .join("\n");
+
+    const regex =
+        new RegExp(
+            escapeRegExp(query),
+            "gi"
+        );
+
+    const matches =
+        text.match(regex);
+
+    const count =
+        matches
+            ? matches.length
+            : 0;
+
+    document.getElementById(
+        "findInfo"
+    ).textContent =
+        `${count} ${
+            count === 1
+                ? "match"
+                : "matches"
+        } found`;
+
+    findNext();
+}
+
+
+/* =========================================================
+   FIND NEXT
+========================================================= */
+
+function findNext() {
+
+    const query =
+        document.getElementById(
+            "findInput"
+        ).value;
+
+    if (!query) {
+        return;
+    }
+
+    const selection =
+        window.getSelection();
+
+    const range =
+        document.createRange();
+
+    /*
+        Browser native find is useful here because
+        it can search across editable pages.
+    */
+
+    if (
+        window.find
+    ) {
+
+        window.find(
+            query,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+        );
+    }
+}
+
+function findPrevious() {
+
+    const query =
+        document.getElementById(
+            "findInput"
+        ).value;
+
+    if (!query) {
+        return;
+    }
+
+    if (
+        window.find
+    ) {
+
+        window.find(
+            query,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+        );
+    }
+}
+
+
+/* =========================================================
+   REPLACE CURRENT
+========================================================= */
+
+function replaceCurrent() {
+
+    const find =
+        document.getElementById(
+            "findInput"
+        ).value;
+
+    const replace =
+        document.getElementById(
+            "replaceInput"
+        ).value;
+
+    if (!find) {
+        return;
+    }
+
+    const selection =
+        window.getSelection();
+
+    if (
+        selection &&
+        selection.rangeCount > 0
+    ) {
+
+        const selected =
+            selection.toString();
+
+        if (
+            selected.toLowerCase() ===
+            find.toLowerCase()
+        ) {
+
+            document.execCommand(
+                "insertText",
+                false,
+                replace
+            );
+
+            updateEverything();
+
+            findNext();
+        }
+    }
+}
+
+
+/* =========================================================
+   REPLACE ALL
+========================================================= */
+
+function replaceAll() {
+
+    const find =
+        document.getElementById(
+            "findInput"
+        ).value;
+
+    const replace =
+        document.getElementById(
+            "replaceInput"
+        ).value;
+
+    if (!find) {
+        return;
+    }
+
+    getContentPages().forEach(
+        content => {
+
+            const walker =
+                document.createTreeWalker(
+                    content,
+                    NodeFilter.SHOW_TEXT
+                );
+
+            const nodes = [];
+
+            while (
+                walker.nextNode()
+            ) {
+
+                nodes.push(
+                    walker.currentNode
+                );
+            }
+
+            nodes.forEach(
+                node => {
+
+                    node.nodeValue =
+                        node.nodeValue.replace(
+                            new RegExp(
+                                escapeRegExp(find),
+                                "gi"
+                            ),
+                            replace
+                        );
+                }
+            );
+        }
+    );
+
+    updateEverything();
+
+    findText();
+}
+
+
+/* =========================================================
+   ESCAPE REGEX
+========================================================= */
+
+function escapeRegExp(text) {
+
+    return text.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+    );
+}
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function changeZoom(amount) {
+
+    zoom += amount;
+
+    zoom =
+        Math.max(
+            50,
+            Math.min(
+                150,
+                zoom
+            )
+        );
+
+    document.getElementById(
+        "zoomText"
+    ).textContent =
+        zoom + "%";
+
+    documentContainer.style.transform =
+        `scale(${zoom / 100})`;
+
+    documentContainer.style.transformOrigin =
+        "top center";
+
+    /*
+        Compensate for scaled height.
+    */
+
+    documentContainer.style.marginBottom =
+        `${(zoom - 100) * 3}px`;
+}
+
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
+
+function toggleFullscreen() {
+
+    document.body.classList.toggle(
+        "fullscreen"
+    );
+}
+
+
+/* =========================================================
+   NEW DOCUMENT
+========================================================= */
+
+function newDocument() {
+
+    startNewDocument();
+}
+
+
+/* =========================================================
+   FOCUS FIRST PAGE
+========================================================= */
+
+function focusFirstPage() {
+
+    const first =
+        document.querySelector(
+            ".page-content"
+        );
+
+    if (!first) {
+        return;
+    }
+
+    first.focus();
+}
+
+
+/* =========================================================
+   PATENTER SHARED STORAGE  (keep identical in index.html and
+   editor/document.html — both pages open the same database)
+
+   Database "patenter", version 3
+     documents  keyPath "id"   indexes: updatedAt, type, status, kind
+     meta       keyPath "key"
+
+   Every row in "documents":
+     id, title, kind ("file" | "editor"), type, ref, status, owner,
+     createdAt, updatedAt   (numbers: ms since epoch)
+     fileName, mimeType, size
+     kind "file"   → blob       (uploaded in the library)
+     kind "editor" → pages[]    (HTML per page, written by the editor)
+
+   Rows written by the older "PatenterEditorDB" are copied in once.
+========================================================= */
+
+const PATENTER_DB_NAME = "patenter";
+const PATENTER_DB_VERSION = 3;
+const PATENTER_LEGACY_DB = "PatenterEditorDB";
+
+// Accepts numbers, ISO strings or Dates; returns ms (0 if unknown).
+function patenterToMs(value) {
+    if (typeof value === "number") return value;
+    if (value instanceof Date) return value.getTime();
+    const ms = Date.parse(value || "");
+    return Number.isNaN(ms) ? 0 : ms;
+}
+
+// Bring any record (old library row, old editor row, new row) to the shared shape.
+function patenterNormalize(record) {
+    const r = { ...record };
+    r.kind = r.kind || (Array.isArray(r.pages) ? "editor" : "file");
+    r.createdAt = patenterToMs(r.createdAt || r.savedAt || r.updatedAt) || Date.now();
+    r.updatedAt = patenterToMs(r.updatedAt || r.savedAt) || r.createdAt;
+    delete r.savedAt;
+    r.title = r.title || "Untitled document";
+    r.type = r.type || "Patent application";
+    r.status = r.status || "Draft";
+    r.owner = r.owner || "You";
+    if (r.ref == null) r.ref = "";
+    if (r.kind === "editor") {
+        r.pages = Array.isArray(r.pages) ? r.pages : [""];
+        r.mimeType = "text/html";
+        r.fileName = `${r.title}.html`;
+        r.size = new Blob(r.pages).size;
+    }
+    return r;
+}
+
+const patenterIsEditorDoc = r => !!r && (r.kind === "editor" || Array.isArray(r.pages));
+
+function patenterRequest(req) {
+    return new Promise((resolve, reject) => {
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+function patenterUpgrade(db, tx) {
+    const docs = db.objectStoreNames.contains("documents")
+        ? tx.objectStore("documents")
+        : db.createObjectStore("documents", { keyPath: "id" });
+
+    ["updatedAt", "type", "status", "kind"].forEach(name => {
+        if (!docs.indexNames.contains(name)) docs.createIndex(name, name);
+    });
+
+    if (!db.objectStoreNames.contains("meta")) {
+        db.createObjectStore("meta", { keyPath: "key" });
+    }
+
+    // Rewrite existing rows (e.g. from library v1) into the shared shape.
+    docs.openCursor().onsuccess = event => {
+        const cursor = event.target.result;
+        if (!cursor) return;
+        cursor.update(patenterNormalize(cursor.value));
+        cursor.continue();
+    };
+}
+
+// Copy documents from the editor's old database the first time we run.
+async function patenterMigrateLegacy(db) {
+    const flag = await patenterRequest(
+        db.transaction("meta", "readonly").objectStore("meta").get("migratedLegacyEditorDB")
+    );
+    if (flag) return;
+
+    // Open the old DB without creating it if it never existed.
+    const legacy = await new Promise(resolve => {
+        let req;
+        try { req = indexedDB.open(PATENTER_LEGACY_DB); } catch { return resolve(null); }
+        req.onupgradeneeded = event => { if (event.oldVersion === 0) req.transaction.abort(); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = event => { event.preventDefault(); resolve(null); };
+        req.onblocked = () => resolve(null);
+    });
+
+    let oldDocs = [];
+    let lastOpenedId;
+    if (legacy) {
+        try {
+            if (legacy.objectStoreNames.contains("documents")) {
+                oldDocs = await patenterRequest(
+                    legacy.transaction("documents", "readonly").objectStore("documents").getAll()
+                );
+            }
+            if (legacy.objectStoreNames.contains("meta")) {
+                const row = await patenterRequest(
+                    legacy.transaction("meta", "readonly").objectStore("meta").get("lastOpenedId")
+                );
+                lastOpenedId = row && row.value;
+            }
+        } finally {
+            legacy.close();
+        }
+    }
+
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(["documents", "meta"], "readwrite");
+        const docs = tx.objectStore("documents");
+        const meta = tx.objectStore("meta");
+        oldDocs.forEach(doc => {
+            docs.get(doc.id).onsuccess = e => {
+                if (!e.target.result) docs.put(patenterNormalize({ ...doc, kind: "editor" }));
+            };
+        });
+        if (lastOpenedId) {
+            meta.get("lastOpenedId").onsuccess = e => {
+                if (!e.target.result) meta.put({ key: "lastOpenedId", value: lastOpenedId });
+            };
+        }
+        meta.put({ key: "migratedLegacyEditorDB", value: Date.now() });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("Migration aborted"));
+    });
+}
+
+let patenterDbPromise = null;
+
+function patenterOpenDB() {
+    if (patenterDbPromise) return patenterDbPromise;
+
+    patenterDbPromise = new Promise((resolve, reject) => {
+        if (!("indexedDB" in window)) {
+            reject(new Error("IndexedDB is not supported in this browser."));
+            return;
+        }
+        const req = indexedDB.open(PATENTER_DB_NAME, PATENTER_DB_VERSION);
+        req.onupgradeneeded = () => patenterUpgrade(req.result, req.transaction);
+        req.onsuccess = () => {
+            const db = req.result;
+            // Another tab needs a newer version: let go so it isn't blocked.
+            db.onversionchange = () => { db.close(); patenterDbPromise = null; };
+            resolve(db);
+        };
+        req.onerror = () => reject(req.error);
+        req.onblocked = () => {
+            console.warn("Patenter database upgrade is waiting for another tab to close.");
+            window.dispatchEvent(new CustomEvent("patenter-db-blocked"));
+        };
+    }).then(async db => {
+        try { await patenterMigrateLegacy(db); } catch (err) { console.warn("Legacy migration skipped:", err); }
+        return db;
+    });
+
+    patenterDbPromise.catch(() => { patenterDbPromise = null; });
+    return patenterDbPromise;
+}
+
+// Read-modify-write several rows in ONE transaction, so edits made by the
+// other page between the read and the write are never lost.
+// patches: [{ id, changes, create? }] — create is used when the row is missing.
+async function patenterPatch(patches) {
+    const db = await patenterOpenDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("documents", "readwrite");
+        const store = tx.objectStore("documents");
+        patches.forEach(({ id, changes, create }) => {
+            store.get(id).onsuccess = e => {
+                const current = e.target.result || create;
+                if (current) store.put(patenterNormalize({ ...current, ...changes, id }));
+            };
+        });
+        tx.oncomplete = () => { patenterNotify(patches.map(p => p.id)); resolve(); };
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+    });
+}
+
+// Tell the other page (in other tabs) that rows changed.
+const patenterChannel = "BroadcastChannel" in window ? new BroadcastChannel("patenter-db") : null;
+function patenterNotify(ids) {
+    try { patenterChannel && patenterChannel.postMessage({ type: "changed", ids }); } catch {}
+}
+
+
+/* =========================================================
+   EDITOR-SIDE STORAGE (on top of the shared layer)
+========================================================= */
+
+const DOCS_STORE = "documents";
+const META_STORE = "meta";
+const DEFAULT_TITLE = "Untitled document";
+
+let currentDocumentId = null;
+let currentCreatedAt = null;
+let currentPersisted = false;
+let autosaveRunning = null;
+
+const openDB = () => patenterOpenDB();
+
+// Small helper: run one request in a transaction and resolve when it commits.
+async function dbRequest(storeName, mode, makeRequest) {
+
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+
+        const transaction = db.transaction(storeName, mode);
+        const request = makeRequest(transaction.objectStore(storeName));
+
+        let result;
+
+        request.onsuccess = () => { result = request.result; };
+
+        transaction.oncomplete = () => resolve(result);
+        transaction.onerror = () => reject(transaction.error || request.error);
+        transaction.onabort = () => reject(transaction.error || new Error("Transaction aborted"));
+    });
+}
+
+const dbGetDocument = id =>
+    dbRequest(DOCS_STORE, "readonly", store => store.get(id));
+
+// Merge into the stored row so type/status/ref set in the library are kept.
+const dbPutDocument = ({ id, title, pages, createdAt, updatedAt }) =>
+    patenterPatch([{
+        id,
+        changes: { title, pages, updatedAt, kind: "editor" },
+        create: { id, createdAt, kind: "editor" }
+    }]);
+
+const dbDeleteDocument = async id => {
+    await dbRequest(DOCS_STORE, "readwrite", store => store.delete(id));
+    patenterNotify([id]);
+};
+
+async function dbListDocuments() {
+
+    const docs = await dbRequest(DOCS_STORE, "readonly", store => store.getAll());
+
+    // Uploaded files live in the same store; the editor only lists its own documents.
+    return (docs || [])
+        .filter(patenterIsEditorDoc)
+        .sort((a, b) => patenterToMs(b.updatedAt || b.savedAt) - patenterToMs(a.updatedAt || a.savedAt));
+}
+
+const dbSetMeta = (key, value) =>
+    dbRequest(META_STORE, "readwrite", store => store.put({ key, value }));
+
+async function dbGetMeta(key) {
+
+    const row = await dbRequest(META_STORE, "readonly", store => store.get(key));
+
+    return row ? row.value : undefined;
+}
+
+function generateId() {
+
+    if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    return "doc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+}
+
+function setSaveStatus(text) {
+
+    document.getElementById("saveStatus").textContent = text;
+}
+
+
+/* =========================================================
+   AUTOSAVE
+========================================================= */
+
+function scheduleAutosave() {
+
+    clearTimeout(autosaveTimer);
+
+    setSaveStatus("Saving...");
+
+    autosaveTimer = setTimeout(autosave, 700);
+}
+
+function isBlankDocument(data) {
+
+    const noText = data.pages.every(html => {
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        return !div.textContent.trim() && !div.querySelector("img, hr");
+    });
+
+    return noText && (!data.title.trim() || data.title.trim() === DEFAULT_TITLE);
+}
+
+async function autosave() {
+
+    autosaveTimer = null;
+
+    // Serialise saves so two writes can never interleave.
+    if (autosaveRunning) {
+        await autosaveRunning;
+    }
+
+    autosaveRunning = (async () => {
+
+        try {
+
+            const data = collectDocument();
+
+            // Don't fill the library with empty "Untitled" documents.
+            if (!currentPersisted && isBlankDocument(data)) {
+                setSaveStatus("");
+                return;
+            }
+
+            if (!currentDocumentId) {
+                currentDocumentId = generateId();
+            }
+
+            const now = Date.now();
+
+            if (!currentCreatedAt) {
+                currentCreatedAt = now;
+            }
+
+            await dbPutDocument({
+                id: currentDocumentId,
+                title: data.title,
+                pages: data.pages,
+                createdAt: currentCreatedAt,
+                updatedAt: now
+            });
+
+            currentPersisted = true;
+
+            await dbSetMeta("lastOpenedId", currentDocumentId);
+
+            setSaveStatus("Saved");
+
+        } catch (error) {
+
+            console.error("Could not save document:", error);
+
+            setSaveStatus("Save failed");
+        }
+    })();
+
+    await autosaveRunning;
+
+    autosaveRunning = null;
+}
+
+// Save immediately if a save is waiting (used before switching documents).
+async function flushAutosave() {
+
+    if (autosaveTimer) {
+        clearTimeout(autosaveTimer);
+        await autosave();
+    } else if (autosaveRunning) {
+        await autosaveRunning;
+    }
+}
+
+// Save button / Ctrl+S
+async function saveNow() {
+
+    clearTimeout(autosaveTimer);
+    autosaveTimer = null;
+
+    const wasPersisted = currentPersisted;
+
+    // An explicit save keeps even a blank document.
+    currentPersisted = true;
+
+    await autosave();
+
+    if (!wasPersisted && document.getElementById("saveStatus").textContent !== "Saved") {
+        currentPersisted = false;
+    }
+}
+
+// Try to save pending edits when the tab is hidden or closed.
+document.addEventListener("visibilitychange", () => {
+
+    if (document.visibilityState === "hidden") {
+        flushAutosave();
+    }
+});
+
+window.addEventListener("beforeunload", event => {
+
+    if (autosaveTimer || autosaveRunning) {
+        flushAutosave();
+        event.preventDefault();
+        event.returnValue = "";
+    }
+});
+
+
+/* =========================================================
+   LOADING / SWITCHING DOCUMENTS
+========================================================= */
+
+// Put a stored document into the editor without triggering a save.
+function renderDocument(record) {
+
+    document.getElementById("documentTitle").value = record.title || DEFAULT_TITLE;
+
+    documentContainer.innerHTML = "";
+
+    const pages = record.pages && record.pages.length ? record.pages : [""];
+
+    pages.forEach(html => {
+        createPage().querySelector(".page-content").innerHTML = html;
+    });
+
+    updatePagination();
+    updateCounts();
+    updatePageNumbers();
+
+    const area = document.getElementById("editorArea");
+
+    if (area) {
+        area.scrollTop = 0;
+    }
+}
+
+async function openDocument(id) {
+
+    await flushAutosave();
+
+    try {
+
+        const record = await dbGetDocument(id);
+
+        if (!record || !patenterIsEditorDoc(record)) {
+            alert("That document could not be found.");
+            return;
+        }
+
+        currentDocumentId = record.id;
+        currentCreatedAt = patenterToMs(record.createdAt || record.savedAt) || Date.now();
+        currentPersisted = true;
+
+        renderDocument(record);
+
+        await dbSetMeta("lastOpenedId", record.id);
+
+        setSaveStatus("Saved");
+
+        focusFirstPage();
+
+    } catch (error) {
+
+        console.error("Could not open document:", error);
+        alert("Could not open the document.");
+    }
+}
+
+async function startNewDocument() {
+
+    await flushAutosave();
+
+    currentDocumentId = generateId();
+    currentCreatedAt = null;
+    currentPersisted = false;
+
+    renderDocument({ title: DEFAULT_TITLE, pages: [""] });
+
+    setSaveStatus("");
+
+    focusFirstPage();
+}
+
+
+/* =========================================================
+   DOCUMENTS LIBRARY UI
+========================================================= */
+
+let libraryDocs = [];
+
+function formatWhen(iso) {
+
+    if (!iso) {
+        return "";
+    }
+
+    const date = new Date(iso);
+    const seconds = (Date.now() - date.getTime()) / 1000;
+
+    if (seconds < 60) return "just now";
+    if (seconds < 3600) return Math.floor(seconds / 60) + " min ago";
+    if (seconds < 86400) return Math.floor(seconds / 3600) + " h ago";
+    if (seconds < 7 * 86400) return Math.floor(seconds / 86400) + " d ago";
+
+    return date.toLocaleDateString();
+}
+
+function documentPlainText(record) {
+
+    const div = document.createElement("div");
+
+    div.innerHTML = (record.pages || []).join(" ");
+
+    return div.textContent.replace(/\s+/g, " ").trim();
+}
+
+async function openLibrary() {
+
+    await flushAutosave();
+
+    document.getElementById("libraryModal").classList.add("open");
+
+    const search = document.getElementById("librarySearch");
+
+    search.value = "";
+
+    try {
+
+        libraryDocs = (await dbListDocuments()).map(doc => ({
+            ...doc,
+            text: documentPlainText(doc)
+        }));
+
+    } catch (error) {
+
+        console.error("Could not list documents:", error);
+        libraryDocs = [];
+    }
+
+    renderLibrary();
+
+    search.focus();
+}
+
+function closeLibrary() {
+
+    document.getElementById("libraryModal").classList.remove("open");
+}
+
+function renderLibrary() {
+
+    const list = document.getElementById("libraryList");
+    const query = document.getElementById("librarySearch").value.trim().toLowerCase();
+
+    const docs = libraryDocs.filter(doc =>
+        !query ||
+        (doc.title || "").toLowerCase().includes(query) ||
+        doc.text.toLowerCase().includes(query)
+    );
+
+    if (!libraryDocs.length) {
+        list.innerHTML = '<div class="library-empty">No saved documents yet. Start typing and your work is saved here automatically.</div>';
+        return;
+    }
+
+    if (!docs.length) {
+        list.innerHTML = '<div class="library-empty">No documents match your search.</div>';
+        return;
+    }
+
+    list.innerHTML = docs.map(doc => {
+
+        const words = doc.text ? doc.text.split(" ").length : 0;
+        const pages = (doc.pages || []).length || 1;
+        const snippet = doc.text.slice(0, 120);
+
+        return `
+            <div
+                class="library-item${doc.id === currentDocumentId ? " current" : ""}"
+                data-id="${escapeHTML(doc.id)}"
+                tabindex="0"
+                role="button"
+            >
+                <div class="library-item-main">
+                    <div class="library-item-title">${escapeHTML(doc.title || DEFAULT_TITLE)}</div>
+                    <div class="library-item-meta">
+                        Edited ${escapeHTML(formatWhen(doc.updatedAt || doc.savedAt))}
+                        · ${words} ${words === 1 ? "word" : "words"}
+                        · ${pages} ${pages === 1 ? "page" : "pages"}
+                        ${doc.id === currentDocumentId ? " · open now" : ""}
+                    </div>
+                    ${snippet ? `<div class="library-item-snippet">${escapeHTML(snippet)}</div>` : ""}
+                </div>
+                <button
+                    class="library-delete"
+                    data-delete="${escapeHTML(doc.id)}"
+                    title="Delete document"
+                >
+                    Delete
+                </button>
+            </div>
+        `;
+    }).join("");
+}
+
+async function deleteDocument(id) {
+
+    const doc = libraryDocs.find(d => d.id === id);
+    const name = doc ? (doc.title || DEFAULT_TITLE) : "this document";
+
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) {
+        return;
+    }
+
+    try {
+
+        if (id === currentDocumentId) {
+            // Stop any pending save from recreating it.
+            clearTimeout(autosaveTimer);
+            autosaveTimer = null;
+            if (autosaveRunning) await autosaveRunning;
+        }
+
+        await dbDeleteDocument(id);
+
+        libraryDocs = libraryDocs.filter(d => d.id !== id);
+
+        if (id === currentDocumentId) {
+
+            currentPersisted = false;
+
+            if (libraryDocs.length) {
+                await openDocument(libraryDocs[0].id);
+            } else {
+                await startNewDocument();
+            }
+        }
+
+        renderLibrary();
+
+    } catch (error) {
+
+        console.error("Could not delete document:", error);
+        alert("Could not delete the document.");
+    }
+}
+
+document.getElementById("libraryList").addEventListener("click", event => {
+
+    const deleteButton = event.target.closest("[data-delete]");
+
+    if (deleteButton) {
+        event.stopPropagation();
+        deleteDocument(deleteButton.dataset.delete);
+        return;
+    }
+
+    const item = event.target.closest(".library-item");
+
+    if (item) {
+        closeLibrary();
+        openDocument(item.dataset.id);
+    }
+});
+
+document.getElementById("libraryList").addEventListener("keydown", event => {
+
+    const item = event.target.closest(".library-item");
+
+    if (item && event.target === item && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        closeLibrary();
+        openDocument(item.dataset.id);
+    }
+});
+
+document.getElementById("librarySearch").addEventListener("input", renderLibrary);
+
+document.getElementById("libraryModal").addEventListener("mousedown", event => {
+
+    if (event.target.id === "libraryModal") {
+        closeLibrary();
+    }
+});
+
+document.addEventListener("keydown", event => {
+
+    if (
+        event.key === "Escape" &&
+        document.getElementById("libraryModal").classList.contains("open")
+    ) {
+        closeLibrary();
+    }
+});
+
+
+/* =========================================================
+   COLLECT DOCUMENT
+========================================================= */
+
+function collectDocument() {
+
+    return {
+
+        title:
+            document.getElementById(
+                "documentTitle"
+            ).value,
+
+        pages:
+            getContentPages().map(
+                page => page.innerHTML
+            ),
+
+        savedAt:
+            new Date().toISOString()
+    };
+}
+
+
+/* =========================================================
+   RESTORE AUTOSAVE
+========================================================= */
+
+async function restoreAutosave() {
+
+    try {
+
+        // ?id=... (from the library) wins over the last opened document.
+        const requestedId = new URLSearchParams(location.search).get("id");
+        const lastId = requestedId || await dbGetMeta("lastOpenedId");
+
+        let record = lastId ? await dbGetDocument(lastId) : null;
+
+        if (record && !patenterIsEditorDoc(record)) {
+            record = null;
+        }
+
+        if (record && requestedId) {
+            await dbSetMeta("lastOpenedId", record.id);
+        }
+
+        if (!record) {
+            const docs = await dbListDocuments();
+            record = docs[0] || null;
+        }
+
+        if (record) {
+
+            currentDocumentId = record.id;
+            currentCreatedAt = patenterToMs(record.createdAt || record.savedAt) || Date.now();
+            currentPersisted = true;
+
+            renderDocument(record);
+
+            setSaveStatus("Saved");
+
+            return;
+        }
+
+    } catch (error) {
+
+        console.error("Could not restore documents:", error);
+
+        setSaveStatus("Storage unavailable");
+    }
+
+    currentDocumentId = generateId();
+    currentPersisted = false;
+
+    setSaveStatus("");
+}
+
+
+/* =========================================================
+   SAVE FILE
+========================================================= */
+
+function saveFile() {
+
+    const data =
+        collectDocument();
+
+    const blob =
+        new Blob(
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:
+                    "application/json"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href = url;
+
+    const title =
+        data.title
+            .replace(
+                /[^a-z0-9]/gi,
+                "_"
+            );
+
+    link.download =
+        `${title || "document"}.json`;
+
+    document.body.appendChild(
+        link
+    );
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(
+        url
+    );
+}
+
+
+/* =========================================================
+   LOAD FILE
+========================================================= */
+
+function loadFile() {
+
+    const input =
+        document.createElement(
+            "input"
+        );
+
+    input.type = "file";
+
+    input.accept =
+        ".json,application/json";
+
+    input.onchange =
+        function() {
+
+            const file =
+                input.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                function() {
+
+                    try {
+
+                        const data =
+                            JSON.parse(
+                                reader.result
+                            );
+
+                        if (
+                            !data.pages
+                        ) {
+                            throw new Error(
+                                "Invalid document"
+                            );
+                        }
+
+                        // Imported files become a new document in the library.
+                        (async () => {
+
+                            await flushAutosave();
+
+                            currentDocumentId = generateId();
+                            currentCreatedAt = null;
+                            currentPersisted = true;
+
+                            renderDocument(data);
+
+                            await saveNow();
+
+                            closeLibrary();
+                        })();
+
+                    } catch (error) {
+
+                        alert(
+                            "Could not load the document."
+                        );
+                    }
+                };
+
+            reader.readAsText(file);
+        };
+
+    input.click();
+}
+
+
+/* =========================================================
+   EXPORT HTML
+========================================================= */
+
+function exportHTML() {
+
+    const data =
+        collectDocument();
+
+    const pages =
+        data.pages.map(
+            (html, index) => `
+                <section class="page">
+                    <div class="content">
+                        ${html}
+                    </div>
+                    <footer>
+                        Page ${index + 1} of ${data.pages.length}
+                    </footer>
+                </section>
+            `
+        ).join("\n");
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${escapeHTML(data.title)}</title>
+
+<style>
+
+body {
+    margin: 0;
+    background: #eee;
+    font-family: Arial, sans-serif;
+}
+
+.page {
+    width: 210mm;
+    height: 297mm;
+
+    box-sizing: border-box;
+
+    padding:
+        25mm
+        22mm
+        25mm
+        22mm;
+
+    background: white;
+
+    margin: 20px auto;
+
+    position: relative;
+
+    page-break-after: always;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+footer {
+    position: absolute;
+    bottom: 9mm;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #888;
+    font-size: 11px;
+}
+
+@media print {
+
+    body {
+        background: white;
+    }
+
+    .page {
+        margin: 0;
+        box-shadow: none;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+${pages}
+
+</body>
+</html>
+`;
+
+    const blob =
+        new Blob(
+            [html],
+            {
+                type:
+                    "text/html"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href = url;
+
+    link.download =
+        `${data.title || "document"}.html`;
+
+    document.body.appendChild(
+        link
+    );
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(
+        url
+    );
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.textContent =
+        text;
+
+    return div.innerHTML;
+}
+
+
+/* =========================================================
+   EXPORT BUTTON THROUGH CONTEXT MENU
+========================================================= */
+
+document.addEventListener(
+    "contextmenu",
+    event => {
+
+        /*
+            Keep normal browser context menu.
+        */
+
+    }
+);
+
+
+/* =========================================================
+   TITLE AUTOSAVE
+========================================================= */
+
+document.getElementById(
+    "documentTitle"
+).addEventListener(
+    "input",
+    scheduleAutosave
+);
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+restoreAutosave().then(() => {
+    focusFirstPage();
+});
+
+// Keep the library list fresh when the other page changes documents.
+if (patenterChannel) {
+    patenterChannel.addEventListener("message", () => {
+        if (document.getElementById("libraryModal").classList.contains("open")) {
+            dbListDocuments()
+                .then(docs => {
+                    libraryDocs = docs.map(doc => ({ ...doc, text: documentPlainText(doc) }));
+                    renderLibrary();
+                })
+                .catch(() => {});
+        }
+    });
+}
+
+</script>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!-- /patenter/app/find/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patent Search | Patenter</title>
+  <link rel="icon" type="image/x-icon" href="../../images-and-other-branding/SmallSquareLogoJpg.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans&display=swap" rel="stylesheet"/>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #F4F4F4;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+
+    header {
+      background-color: #0D3B66;
+      padding: 20px 40px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    nav a:hover {
+      color: #00B4D8;
+    }
+
+    /* HERO */
+
+    .hero {
+      background-color: #0D3B66;
+      color: white;
+      padding: 160px 20px 80px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      max-width: 700px;
+      margin: auto;
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    /* SEARCH */
+
+    .search-section {
+      margin-top: -40px;
+      padding: 0 20px;
+    }
+
+    .search-box {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .search-box input {
+      flex: 1;
+      min-width: 250px;
+      border: none;
+      background: #F4F4F4;
+      padding: 18px;
+      border-radius: 14px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-box button {
+      background-color: #00B4D8;
+      border: none;
+      color: white;
+      padding: 18px 28px;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .search-box button:hover {
+      background-color: #0097c2;
+    }
+
+    /* RESULTS */
+
+    .results-section {
+      padding: 60px 20px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .results-title {
+      font-family: 'Montserrat', sans-serif;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #0D3B66;
+      font-size: 2rem;
+    }
+
+    #results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 25px;
+    }
+
+    .patent-card {
+      background: white;
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: 0.25s;
+      border-top: 5px solid #00B4D8;
+    }
+
+    .patent-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    }
+
+    .patent-card h3 {
+      color: #0D3B66;
+      font-family: 'Montserrat', sans-serif;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .patent-card p {
+      color: #555;
+      line-height: 1.7;
+    }
+
+    /* MODAL */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background: white;
+      width: 100%;
+      max-width: 1000px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 20px;
+      padding: 40px;
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #0D3B66;
+    }
+
+    .modal-content h2 {
+      color: #0D3B66;
+      font-family: 'Montserrat', sans-serif;
+      margin-bottom: 20px;
+    }
+
+    .modal-content h3 {
+      margin-top: 30px;
+      color: #0D3B66;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .modal-content p {
+      margin-top: 10px;
+      line-height: 1.8;
+      color: #444;
+    }
+
+    /* FOOTER */
+
+    footer {
+      background: #222;
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 50px;
+    }
+
+    footer a {
+      color: #00B4D8;
+      text-decoration: none;
+    }
+
+    /* LOADING */
+
+    .loading {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #0D3B66;
+      padding: 40px;
+    }
+
+    @media(max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+
+      .search-box {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+
+  <header>
+    <div class="logo">Patenter</div>
+
+    <nav>
+      <a href="/app/index.html">Home</a>
+      <a href="#">Search</a>
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+
+  <section class="hero">
+    <h1>Search Global Patents</h1>
+
+    <p>
+      Instantly search patents from the European Patent Office database
+      and explore innovation from companies around the world.
+    </p>
+  </section>
+
+  <!-- SEARCH -->
+
+  <section class="search-section">
+    <div class="search-box">
+      <input
+        type="text"
+        id="companyInput"
+        placeholder="Enter company name..."
+      />
+
+      <button onclick="searchPatents()">
+        Search Patents
+      </button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+
+  <section class="results-section">
+
+    <h2 class="results-title">
+      Patent Results
+    </h2>
+
+    <div id="results"></div>
+
+  </section>
+
+  <!-- MODAL -->
+
+  <div class="modal" id="modal">
+
+    <div class="modal-content">
+
+      <span class="close-btn" onclick="closeModal()">
+        &times;
+      </span>
+
+      <div id="modalBody"></div>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+
+  <footer>
+    <p>&copy; 2026 Patenter. All rights reserved.</p>
+
+    <p>
+      Follow us on
+      <a href="#">Social Media</a>
+    </p>
+  </footer>
+
+  <script>
+    async function searchPatents() {
+
+      const company =
+        document.getElementById("companyInput")
+        .value
+        .trim();
+
+      const resultsDiv =
+        document.getElementById("results");
+
+      if (!company) {
+        alert("Please enter a company name");
+        return;
+      }
+
+      resultsDiv.innerHTML =
+        `<div class="loading">Searching patents...</div>`;
+
+      try {
+
+        // IMPORTANT:
+        // backend is in:
+        // /patenter/backend/server.js
+
+        // this assumes server runs on localhost:3000
+
+        const response = await fetch(
+          "http://localhost:3000/search",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              company
+            })
+          }
+        );
+
+        const data = await response.json();
+const patents = data.patents;   // unwrap it
+
+resultsDiv.innerHTML = "";
+
+if (!patents || !patents.length) {
+  resultsDiv.innerHTML = `<div class="loading">No patents found.</div>`;
+  return;
+}
+patents.forEach(patent => {
+  const card = document.createElement("div");
+  card.className = "patent-card";
+  card.innerHTML = `
+    <h3>${patent.title}</h3>
+    <p>${patent.summary}</p>
+  `;
+  card.onclick = () => openPatent(patent);
+  resultsDiv.appendChild(card);
+});
+
+      } catch (err) {
+
+        console.error(err);
+
+        resultsDiv.innerHTML = `
+          <div class="loading">
+            Error fetching patents.
+          </div>
+        `;
+      }
+    }
+    function openPatent(patent) {
+  document.getElementById("modal").style.display = "flex";
+  document.getElementById("modalBody").innerHTML = `
+    <h2>${patent.title}</h2>
+    <p><strong>Patent Number:</strong> ${patent.patentNumber}</p>
+    <p><strong>Inventor:</strong> ${patent.inventor}</p>
+    <p><strong>Publication Date:</strong> ${patent.publicationDate}</p>
+    <h3>Summary</h3>
+    <p>${patent.summary}</p>
+    <p><a href="${patent.link}" target="_blank" rel="noopener">View full patent on Espacenet →</a></p>
+  `;
+}
+
+    function closeModal() {
+
+      document.getElementById("modal")
+      .style.display = "none";
+    }
+
+    // close modal when clicking outside
+
+    window.onclick = function(event) {
+
+      const modal =
+        document.getElementById("modal");
+
+      if (event.target === modal) {
+        closeModal();
+      }
+    }
+  </script>
+
+</body>
+</html>
