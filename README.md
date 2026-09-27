@@ -43,32 +43,6 @@ Passwords are hashed with Argon2, all API endpoints require sign-in and are
 rate limited, and the pages use a strict Content Security Policy. Third-party
 API keys (EPO, OpenRouter) stay on the server.
 
-**Confidentiality.** Users send unpublished inventions to Patenter AI, and
-disclosing an invention before filing can destroy its novelty. In production,
-configure `AI_MODELS` with paid models from providers that do not log or train
-on prompts, and enable zero-data-retention in the OpenRouter account.
-
-## Deployment
-
-Requirements: a server with [Docker](https://docs.docker.com/engine/install/),
-a domain whose DNS points at the server, and ports 80 and 443 open.
-
-1. Get API credentials:
-   - EPO Open Patent Services: <https://developers.epo.org>
-   - OpenRouter: <https://openrouter.ai>
-2. Copy `deploy/.env.example` to `.env` in the repository root and fill it in.
-3. Start everything:
-
-   ```sh
-   docker compose up -d --build
-   ```
-
-Database migrations run automatically when the auth service starts. To update,
-pull the latest code and run the same command again.
-
-Data is stored in Docker volumes (`db_data` for the database, `caddy_data` for
-certificates). Back up `db_data` regularly.
-
 ## License
 
 Copyright © 2026 Patenter. All rights reserved.
