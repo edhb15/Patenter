@@ -819,6 +819,172 @@ button {
 }
 
 /* =========================================================
+   PATENT TOOLS (claims panel, AI actions)
+========================================================= */
+
+.tool-button.text-button {
+    width: auto;
+    flex-shrink: 0;
+    padding: 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* On wider screens the toolbar wraps instead of hiding buttons off the edge. */
+@media (min-width: 769px) {
+    .toolbar {
+        flex-wrap: wrap;
+        overflow: visible;
+    }
+}
+
+.tools-modal {
+    width: 640px;
+    max-height: min(720px, calc(100vh - 40px));
+    display: flex;
+    flex-direction: column;
+}
+
+.tools-modal select,
+.tools-modal textarea {
+    width: 100%;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    background: #ffffff;
+}
+
+.tools-modal textarea {
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.tools-modal select:focus,
+.tools-modal textarea:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.10);
+}
+
+.tools-body {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    margin-bottom: 15px;
+}
+
+.claims-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.claims-summary span {
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.claims-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.issue-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.issue {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--surface-soft);
+    font-size: 14px;
+    line-height: 1.45;
+    cursor: pointer;
+}
+
+.issue:hover {
+    background: #efefef;
+}
+
+.issue-level {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-top: 1px;
+}
+
+.issue-error .issue-level { background: #fee2e2; color: #b91c1c; }
+.issue-warning .issue-level { background: #fef3c7; color: #92400e; }
+.issue-info .issue-level { background: #e0f2fe; color: #075985; }
+
+.claims-ok {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 14px;
+}
+
+.tools-actions {
+    flex-wrap: wrap;
+}
+
+.tools-actions .spacer {
+    flex: 1;
+}
+
+.assist-selection {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--surface-soft);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    max-height: 90px;
+    overflow: hidden;
+    white-space: pre-wrap;
+}
+
+.assist-status {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    min-height: 18px;
+}
+
+.flash-block {
+    animation: flashBlock 1.6s ease;
+}
+
+@keyframes flashBlock {
+    0%, 60% { background: #fef08a; }
+    100% { background: transparent; }
+}
+
+/* =========================================================
    DOCUMENTS LIBRARY (IndexedDB)
 ========================================================= */
 
@@ -1454,6 +1620,28 @@ body.fullscreen .editor-area {
         🔎
     </button>
 
+
+    <div class="separator"></div>
+
+
+    <!-- Patent tools -->
+
+    <button
+        class="tool-button text-button"
+        onclick="openClaimsPanel()"
+        title="Check claims and number claims/paragraphs"
+    >
+        § Claims
+    </button>
+
+    <button
+        class="tool-button text-button"
+        onclick="openAssist()"
+        title="AI actions on the selected text"
+    >
+        ✨ AI
+    </button>
+
 </div>
 
 
@@ -1690,6 +1878,119 @@ body.fullscreen .editor-area {
 
 
 <!-- =====================================================
+     CLAIMS PANEL
+===================================================== -->
+
+<div
+    id="claimsModal"
+    class="modal-overlay"
+>
+
+    <div class="modal tools-modal" role="dialog" aria-labelledby="claimsTitle">
+
+        <h2 id="claimsTitle">Claims check</h2>
+
+        <div id="claimsBody" class="tools-body"></div>
+
+        <div class="modal-actions tools-actions">
+
+            <button onclick="renumberClaims()" title="Number claims 1, 2, 3… and update references to them">
+                Renumber claims
+            </button>
+
+            <button onclick="numberParagraphs()" title="Add [0001]-style numbers to description paragraphs">
+                Number paragraphs
+            </button>
+
+            <button onclick="removeParagraphNumbers()">
+                Remove paragraph numbers
+            </button>
+
+            <button onclick="compareFirstClaim()" title="Search prior art and compare it with claim 1">
+                Compare claim 1
+            </button>
+
+            <span class="spacer"></span>
+
+            <button onclick="closeClaimsPanel()">
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     AI ACTIONS MODAL
+===================================================== -->
+
+<div
+    id="assistModal"
+    class="modal-overlay"
+>
+
+    <div class="modal tools-modal" role="dialog" aria-labelledby="assistTitle">
+
+        <h2 id="assistTitle">AI actions</h2>
+
+        <div class="tools-body">
+
+            <label>Selected text</label>
+            <div id="assistSelection" class="assist-selection"></div>
+
+            <label for="assistAction">Action</label>
+            <select id="assistAction">
+                <option value="broaden">Broaden this claim</option>
+                <option value="narrow">Narrow this claim</option>
+                <option value="dependent">Write dependent claims</option>
+                <option value="clarity">Improve clarity and antecedent basis</option>
+                <option value="ep">Rewrite in EP two-part form</option>
+                <option value="us">Rewrite in US style</option>
+                <option value="explain">Explain in plain language</option>
+                <option value="custom">Custom instruction…</option>
+            </select>
+
+            <label for="assistInstruction">Extra instructions (optional)</label>
+            <input id="assistInstruction" maxlength="1000" placeholder="e.g. keep the term 'fastening means'">
+
+            <div id="assistStatus" class="assist-status" aria-live="polite"></div>
+
+            <label for="assistResult">Result (you can edit it before inserting)</label>
+            <textarea id="assistResult" placeholder="Run an action to see the result here."></textarea>
+
+        </div>
+
+        <div class="modal-actions tools-actions">
+
+            <button class="primary" id="assistRun" onclick="runAssist()">
+                Run
+            </button>
+
+            <span class="spacer"></span>
+
+            <button onclick="applyAssist('replace')">
+                Replace selection
+            </button>
+
+            <button onclick="applyAssist('below')">
+                Insert below
+            </button>
+
+            <button onclick="closeAssist()">
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
      SCRIPT
 ===================================================== -->
 
@@ -1698,6 +1999,7 @@ body.fullscreen .editor-area {
         crossorigin="anonymous"></script>
 <script src="../../shared/auth-client.js"></script>
 <script src="../../shared/patenter-db.js"></script>
+<script src="../../shared/patent-tools.js"></script>
 
 <script>
 
@@ -2162,6 +2464,9 @@ function splitElement(
 
     const second =
         element.cloneNode(false);
+
+    // The second half isn't a new paragraph (for paragraph numbering).
+    second.dataset.continued = "1";
 
     second.innerText =
         secondText;
@@ -3633,6 +3938,560 @@ document.addEventListener("keydown", event => {
         document.getElementById("libraryModal").classList.contains("open")
     ) {
         closeLibrary();
+    }
+});
+
+
+/* =========================================================
+   PATENT TOOLS: DOCUMENT BLOCKS
+========================================================= */
+
+// Text typed straight into an empty page sits in bare text nodes; wrap
+// such runs in <p> so every line is a block the tools can work with.
+function wrapLooseText() {
+
+    let changed = false;
+
+    getContentPages().forEach(content => {
+
+        let run = [];
+
+        const flush = () => {
+            if (run.some(node => node.textContent.trim())) {
+                const p = document.createElement("p");
+                run[0].before(p);
+                run.forEach(node => p.appendChild(node));
+                changed = true;
+            }
+            run = [];
+        };
+
+        Array.from(content.childNodes).forEach(node => {
+
+            const inline =
+                node.nodeType === Node.TEXT_NODE ||
+                (node.nodeType === Node.ELEMENT_NODE &&
+                    getComputedStyle(node).display.startsWith("inline") &&
+                    node.tagName !== "BR" && node.tagName !== "IMG");
+
+            if (inline) {
+                run.push(node);
+            } else {
+                flush();
+            }
+        });
+
+        flush();
+    });
+
+    return changed;
+}
+
+// Blocks in reading order: { el, text, tag, listNumber, continued }.
+// Items of numbered lists count as blocks with their list number. With
+// splitLines, a block containing line breaks becomes one entry per line.
+function collectBlocks({ splitLines = true } = {}) {
+
+    const blocks = [];
+
+    getContentPages().forEach(content => {
+
+        Array.from(content.children).forEach(el => {
+
+            const tag = el.tagName.toLowerCase();
+
+            if (tag === "ol") {
+
+                const start = Number(el.getAttribute("start")) || 1;
+
+                Array.from(el.children)
+                    .filter(li => li.tagName === "LI")
+                    .forEach((li, i) => {
+                        blocks.push({ el: li, text: li.innerText, tag: "li", listNumber: start + i });
+                    });
+
+                return;
+            }
+
+            const continued = el.dataset.continued === "1";
+            const lines = splitLines ? el.innerText.split("\n") : [el.innerText];
+
+            lines.forEach((text, i) => {
+                blocks.push({ el, text, tag, continued: continued && i === 0 });
+            });
+        });
+    });
+
+    return blocks;
+}
+
+function flashBlock(el) {
+
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.remove("flash-block");
+    void el.offsetWidth;
+    el.classList.add("flash-block");
+    setTimeout(() => el.classList.remove("flash-block"), 1700);
+}
+
+// The first text node of an element that has any visible text.
+function firstTextNode(el) {
+
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+
+    let node;
+
+    while ((node = walker.nextNode())) {
+        if (node.data.trim()) return node;
+    }
+
+    return null;
+}
+
+
+/* =========================================================
+   PATENT TOOLS: CLAIMS CHECK
+========================================================= */
+
+let lastClaimBlocks = [];
+
+function openClaimsPanel() {
+
+    if (wrapLooseText()) {
+        scheduleAutosave();
+    }
+
+    renderClaimsPanel();
+
+    document.getElementById("claimsModal").classList.add("open");
+}
+
+function closeClaimsPanel() {
+
+    document.getElementById("claimsModal").classList.remove("open");
+}
+
+function renderClaimsPanel() {
+
+    const body = document.getElementById("claimsBody");
+
+    lastClaimBlocks = collectBlocks();
+
+    const { headingFound, claims } = PatentTools.extractClaims(lastClaimBlocks);
+
+    if (claims.length === 0) {
+        body.innerHTML = `
+            <p class="claims-note">
+                No claims found. Add a heading called <strong>Claims</strong>
+                and number each claim, e.g. "1. A device comprising…".
+            </p>`;
+        return;
+    }
+
+    const { summary, issues } = PatentTools.checkClaims(claims);
+
+    const note = headingFound
+        ? ""
+        : `<p class="claims-note">No "Claims" heading found, so every numbered paragraph is treated as a claim. Add a Claims heading for more reliable results.</p>`;
+
+    const counts = `
+        <div class="claims-summary">
+            <span>${summary.total} claims</span>
+            <span>${summary.independent} independent</span>
+            <span>${summary.dependent} dependent</span>
+            ${summary.multipleDependent ? `<span>${summary.multipleDependent} multiple dependent</span>` : ""}
+        </div>`;
+
+    const problems = issues.filter(issue => issue.severity !== "info").length;
+
+    const list = issues.length
+        ? `<ul class="issue-list">${issues.map((issue, i) => `
+            <li class="issue issue-${issue.severity}" data-issue="${i}" tabindex="0">
+                <span class="issue-level">${issue.severity}</span>
+                <span>${escapeHTML(issue.message)}</span>
+            </li>`).join("")}</ul>`
+        : "";
+
+    body.innerHTML =
+        counts +
+        note +
+        (problems === 0 ? `<p class="claims-ok">No numbering, dependency or antecedent-basis problems found.</p><br>` : "") +
+        list +
+        `<p class="claims-note" style="margin-top:12px">
+            Automatic checks can miss problems and flag correct wording. They don't replace a review by a patent attorney.
+        </p>`;
+
+    body.querySelectorAll(".issue").forEach(item => {
+
+        const issue = issues[Number(item.dataset.issue)];
+        const claim = issue.index !== undefined ? claims[issue.index] : null;
+
+        if (!claim) {
+            item.style.cursor = "default";
+            return;
+        }
+
+        const go = () => {
+            closeClaimsPanel();
+            flashBlock(lastClaimBlocks[claim.blocks[0]].el);
+        };
+
+        item.addEventListener("click", go);
+        item.addEventListener("keydown", event => {
+            if (event.key === "Enter") go();
+        });
+    });
+}
+
+document.getElementById("claimsModal").addEventListener("mousedown", event => {
+
+    if (event.target.id === "claimsModal") {
+        closeClaimsPanel();
+    }
+});
+
+
+/* =========================================================
+   PATENT TOOLS: NUMBERING
+========================================================= */
+
+// Numbers claims 1, 2, 3… in document order and rewrites "claim N"
+// references to match.
+function renumberClaims() {
+
+    wrapLooseText();
+
+    const blocks = collectBlocks();
+    const { claims } = PatentTools.extractClaims(blocks);
+
+    if (claims.length === 0) {
+        alert("No claims found. Add a heading called \"Claims\" and number each claim.");
+        return;
+    }
+
+    if (claims.some(claim => claim.listNumbered)) {
+        alert("These claims use an automatic numbered list, so their numbers already update by themselves. References such as \"claim 2\" are not changed.");
+        return;
+    }
+
+    const mapping = PatentTools.claimRenumbering(claims);
+
+    const elements = [];
+
+    claims.forEach(claim => {
+        claim.blocks.forEach(index => {
+            if (!elements.includes(blocks[index].el)) {
+                elements.push(blocks[index].el);
+            }
+        });
+    });
+
+    let next = 1;
+
+    elements.forEach(el => {
+
+        // A claim number only counts at the start of a line.
+        const walker = document.createTreeWalker(
+            el,
+            NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT
+        );
+
+        let lineStart = true;
+        let node = el;
+
+        do {
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === "BR" || (node !== el && getComputedStyle(node).display === "block")) {
+                    lineStart = true;
+                }
+                continue;
+            }
+
+            if (!node.data.trim()) continue;
+
+            if (lineStart) {
+                const renumbered = PatentTools.replaceLeadingClaimNumber(node.data, next);
+                if (renumbered !== null) {
+                    node.data = renumbered;
+                    next++;
+                }
+                lineStart = false;
+            }
+
+            node.data = PatentTools.renumberReferences(node.data, mapping);
+
+        } while ((node = walker.nextNode()));
+    });
+
+    updateEverything();
+    renderClaimsPanel();
+}
+
+function numberParagraphs() {
+
+    wrapLooseText();
+
+    const blocks = collectBlocks({ splitLines: false });
+    const indexes = PatentTools.paragraphsToNumber(blocks);
+
+    if (indexes.length === 0) {
+        alert("No description paragraphs found to number.");
+        return;
+    }
+
+    indexes.forEach((index, i) => {
+
+        const node = firstTextNode(blocks[index].el);
+        if (!node) return;
+
+        const label = PatentTools.formatParagraphNumber(i + 1) + " ";
+        const leading = node.data.match(/^\s*/)[0];
+
+        node.data = PatentTools.PARAGRAPH_NUMBER.test(node.data)
+            ? node.data.replace(PatentTools.PARAGRAPH_NUMBER, label)
+            : leading + label + node.data.slice(leading.length);
+    });
+
+    updateEverything();
+    renderClaimsPanel();
+}
+
+function removeParagraphNumbers() {
+
+    let removed = 0;
+
+    collectBlocks({ splitLines: false }).forEach(block => {
+
+        const node = firstTextNode(block.el);
+
+        if (node && PatentTools.PARAGRAPH_NUMBER.test(node.data)) {
+            node.data = PatentTools.stripParagraphNumber(node.data);
+            removed++;
+        }
+    });
+
+    if (removed) {
+        updateEverything();
+        renderClaimsPanel();
+    }
+}
+
+// Hands claim 1 to Patenter Find's comparison tab.
+function compareFirstClaim() {
+
+    const { claims } = PatentTools.extractClaims(collectBlocks());
+    const claim = claims.find(c => c.independent) || claims[0];
+
+    if (!claim) {
+        alert("No claims found to compare.");
+        return;
+    }
+
+    try {
+        localStorage.setItem("patenter_compare_claim", `${claim.number}. ${claim.text}`);
+    } catch {
+        alert("Could not pass the claim to Patenter Find.");
+        return;
+    }
+
+    flushAutosave();
+
+    window.open("../find/index.html?tab=compare", "_blank", "noopener");
+}
+
+
+/* =========================================================
+   PATENT TOOLS: AI ACTIONS ON SELECTED TEXT
+========================================================= */
+
+let assistRange = null;
+
+function openAssist() {
+
+    const range = savedRange ? savedRange.cloneRange() : null;
+    const text = range ? range.toString().trim() : "";
+
+    if (!text) {
+        alert("Select some text first, for example a claim.");
+        return;
+    }
+
+    if (text.length > 8000) {
+        alert("The selection is too long for AI actions (8000 characters at most).");
+        return;
+    }
+
+    assistRange = range;
+
+    document.getElementById("assistSelection").textContent =
+        text.length > 400 ? text.slice(0, 400) + "…" : text;
+
+    document.getElementById("assistStatus").textContent = "";
+    document.getElementById("assistModal").classList.add("open");
+    document.getElementById("assistAction").focus();
+}
+
+function closeAssist() {
+
+    document.getElementById("assistModal").classList.remove("open");
+}
+
+// For new dependent claims: continue after the last claim and refer to
+// the selected claim.
+function dependentClaimHint(text) {
+
+    const { claims } = PatentTools.extractClaims(collectBlocks());
+    const last = claims.reduce((max, claim) => Math.max(max, claim.number), 0);
+    const selected = /^\s*(\d{1,3})\s*[.)]/.exec(text);
+
+    const parts = [];
+
+    if (last) parts.push(`Number the new claims from ${last + 1}.`);
+    if (selected) parts.push(`Make them refer to claim ${selected[1]}.`);
+
+    return parts.join(" ");
+}
+
+async function runAssist() {
+
+    if (!assistRange) return;
+
+    const action = document.getElementById("assistAction").value;
+    const text = assistRange.toString().trim();
+    const status = document.getElementById("assistStatus");
+    const button = document.getElementById("assistRun");
+
+    let instruction = document.getElementById("assistInstruction").value.trim();
+
+    if (action === "custom" && !instruction) {
+        status.textContent = "Type what the AI should do in Extra instructions.";
+        document.getElementById("assistInstruction").focus();
+        return;
+    }
+
+    if (action === "dependent") {
+        instruction = [dependentClaimHint(text), instruction].filter(Boolean).join(" ").slice(0, 1000);
+    }
+
+    button.disabled = true;
+    status.textContent = "Patenter AI is working…";
+
+    try {
+
+        const response = await PatenterAuth.apiFetch("/assist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(instruction ? { action, text, instruction } : { action, text })
+        });
+
+        if (response.status === 401) {
+            PatenterAuth.goToLogin();
+            return;
+        }
+
+        if (response.status === 429) {
+            status.textContent = "Too many requests. Please wait a few minutes.";
+            return;
+        }
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data.success) {
+            status.textContent = data.error || data.message || "The AI request failed.";
+            return;
+        }
+
+        document.getElementById("assistResult").value = data.message;
+        status.textContent = `Done (${data.model}). Check the result before using it.`;
+
+    } catch (error) {
+
+        console.error(error);
+        status.textContent = "Could not reach the Patenter AI server.";
+
+    } finally {
+        button.disabled = false;
+    }
+}
+
+function applyAssist(mode) {
+
+    const result = document.getElementById("assistResult").value.trim();
+
+    if (!result || !assistRange) {
+        document.getElementById("assistStatus").textContent = "Run an action first.";
+        return;
+    }
+
+    if (!assistRange.startContainer.isConnected) {
+        document.getElementById("assistStatus").textContent = "The selected text has changed. Select it again.";
+        return;
+    }
+
+    closeAssist();
+
+    if (mode === "replace") {
+
+        const start = assistRange.startContainer;
+        const host = (start.nodeType === Node.ELEMENT_NODE ? start : start.parentElement)
+            ?.closest(".page-content");
+        if (host) host.focus();
+
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(assistRange);
+
+        // insertText keeps the change on the undo stack.
+        document.execCommand("insertText", false, result);
+
+    } else {
+
+        // After the block that holds the end of the selection.
+        let block = assistRange.endContainer;
+
+        if (block.nodeType !== Node.ELEMENT_NODE) block = block.parentElement;
+
+        while (block.parentElement && !block.parentElement.classList.contains("page-content")) {
+            block = block.parentElement;
+        }
+
+        let anchor = block;
+
+        result.split(/\n+/).map(line => line.trim()).filter(Boolean).forEach(line => {
+            const p = document.createElement("p");
+            p.textContent = line;
+            anchor.after(p);
+            anchor = p;
+        });
+
+        flashBlock(anchor);
+    }
+
+    assistRange = null;
+
+    updateEverything();
+}
+
+document.getElementById("assistModal").addEventListener("mousedown", event => {
+
+    if (event.target.id === "assistModal") {
+        closeAssist();
+    }
+});
+
+document.addEventListener("keydown", event => {
+
+    if (event.key !== "Escape") return;
+
+    if (document.getElementById("assistModal").classList.contains("open")) {
+        closeAssist();
+    }
+
+    if (document.getElementById("claimsModal").classList.contains("open")) {
+        closeClaimsPanel();
     }
 });
 

@@ -9,16 +9,42 @@ individual inventors and start-ups to large enterprises.
 ### Patenter AI
 An AI assistant for patent work: brainstorm and develop inventions, write
 claims, create technical summaries and draft complete patent applications.
-Drafts open directly in the Patenter editor.
+Conversations keep their context, so follow-ups such as "make claim 2
+narrower" work. Drafts open directly in the Patenter editor.
 
 ### Patenter Find
 Search worldwide patent publications through the European Patent Office's
-Open Patent Services. The most relevant results come with bibliographic data
-and an AI-written summary, plus a link to the full document on Espacenet.
+Open Patent Services by keywords, applicant, inventor, CPC class,
+publication number and publication date. The most relevant results come with
+bibliographic data and an AI-written summary, plus a link to the full
+document on Espacenet.
+
+- **Compare a claim**: finds the closest documents for a claim and has
+  Patenter AI compare them feature by feature (✓ / ~ / ✗ table) with notes
+  on novelty and inventive step.
+- **Watchlist**: save a search (for example a competitor or a CPC class) and
+  check it later for publications that are new since you last looked.
 
 ### Patenter Editor
 A text editor designed for patent applications, with a document library for
 drafts and uploaded files.
+
+- **Claims check**: finds numbering gaps and duplicates, references to
+  missing or later claims, missing antecedent basis ("said lever" without
+  "a lever"), claims that aren't one sentence, and EPO/USPTO excess-claims
+  fees.
+- **Numbering**: renumber claims (references such as "claim 3" are updated
+  too) and add or remove `[0001]`-style paragraph numbers.
+- **AI actions**: select text to broaden or narrow a claim, write dependent
+  claims, improve clarity, rewrite in EP two-part form or US style, or
+  explain it in plain language.
+
+### Deadline calculator
+Key dates for a first filing, a PCT application or a European application:
+priority year, publication, Article 19 and Chapter II, PCT national and
+regional phase, EP examination and renewal fees (with grace periods). Dates
+on weekends move to the next working day, and the list can be exported to a
+calendar (.ics).
 
 > Patenter AI can make mistakes and does not give legal advice. Drafts should
 > be reviewed by a patent attorney before filing.
