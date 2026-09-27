@@ -355,6 +355,9 @@ button:hover{
   <button onclick="openInEditor()">
     Open In Editor
   </button>
+  <button onclick="newChat()" title="Start a new conversation">
+    New Chat
+  </button>
   <p class="ai-notice">
     Patenter AI can make mistakes and does not give legal advice. Have a patent
     attorney review drafts before filing, and keep an invention confidential
@@ -379,6 +382,43 @@ PatenterAuth.requireSignIn();
 const chat = document.getElementById("chat");
 let lastAIHTML = "";
 let lastAIMarkdown = "";
+
+// Earlier turns are sent with each message so follow-ups ("make claim 2
+// narrower") work. The server accepts at most 20 turns / 40000 characters.
+const MAX_HISTORY_MESSAGES = 20;
+const MAX_HISTORY_CHARS = 32000;
+const MAX_TURN_CHARS = 8000;
+let history = [];
+
+function historyToSend(){
+
+const recent = [];
+let total = 0;
+
+for (let i = history.length - 1; i >= 0 && recent.length < MAX_HISTORY_MESSAGES; i--) {
+
+  const content = history[i].content.slice(0, MAX_TURN_CHARS);
+
+  if (total + content.length > MAX_HISTORY_CHARS) break;
+
+  total += content.length;
+  recent.unshift({ role: history[i].role, content });
+}
+
+// The conversation sent must start with a user turn.
+while (recent.length && recent[0].role !== "user") recent.shift();
+
+return recent;
+}
+
+function newChat(){
+
+history = [];
+lastAIHTML = "";
+lastAIMarkdown = "";
+chat.innerHTML = "";
+document.getElementById("prompt").focus();
+}
 /* ADD MESSAGE */
 
 function addMessage(text, type){
@@ -423,7 +463,7 @@ try {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ message: userMessage })
+    body: JSON.stringify({ message: userMessage, history: historyToSend() })
   });
 
   if (response.status === 401) {
@@ -603,6 +643,11 @@ if(result.success){
 
   // Only the answer itself goes to the editor, not the model header.
   lastAIHTML = DOMPurify.sanitize(marked.parse(result.message));
+
+  history.push(
+    { role: "user", content: text },
+    { role: "assistant", content: result.message }
+  );
 
 } else {
 

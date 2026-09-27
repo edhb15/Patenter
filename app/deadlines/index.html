@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Limits where scripts load from and where data can be sent. The APIs are
+     served from the same origin as the pages (see deploy/Caddyfile). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deadlines – Patenter</title>
+<link rel="icon" type="image/x-icon" href="../../images-and-other-branding/SmallSquareLogoJpg.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0D3B66;
+    --primary-dark: #0a2f52;
+    --accent: #00B4D8;
+    --accent-tint: #E6F7FB;
+    --light-bg: #F4F4F4;
+    --white: #FFFFFF;
+    --text-dark: #222222;
+    --text-light: #555555;
+    --border: #E5E7EB;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #DC2626;
+    --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --radius: 12px;
+    --pill: 30px;
+    --ease: 0.3s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  [hidden] { display: none !important; }
+
+  body {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    background: var(--light-bg);
+    color: var(--text-dark);
+    line-height: 1.5;
+  }
+
+  h1, h2, .brand-name { font-family: 'Montserrat', 'Open Sans', sans-serif; font-weight: 700; color: var(--primary); }
+
+  button, input, select { font-family: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .topbar {
+    height: 72px;
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 40px;
+    background: var(--white); border-bottom: 1px solid var(--border);
+  }
+  .brand-name { font-size: 22px; text-decoration: none; }
+  .topbar-spacer { flex: 1; }
+  .topbar a.link { color: var(--primary); font-weight: 600; text-decoration: none; }
+  .topbar a.link:hover { color: var(--accent); }
+
+  main { max-width: 1000px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  .page-head h1 { font-size: 32px; line-height: 1.2; }
+  .page-head p { margin-top: 6px; font-size: 15px; line-height: 1.7; color: var(--text-light); }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-subtle);
+    padding: 24px;
+    margin-top: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 16px;
+  }
+
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; color: var(--primary); }
+  label small { font-weight: 400; color: var(--text-light); }
+
+  input, select {
+    height: 42px; padding: 0 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--light-bg); font-size: 15px; color: var(--text-dark);
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); background: var(--white); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; align-items: center; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 42px; padding: 0 20px;
+    border-radius: var(--pill); border: 2px solid var(--primary);
+    font-weight: 700; font-size: 14px;
+    transition: all var(--ease);
+  }
+  .btn-primary { background: var(--primary); color: var(--white); }
+  .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+  .btn-secondary { background: transparent; color: var(--primary); }
+  .btn-secondary:hover { background: var(--primary); color: var(--white); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .check { flex-direction: row; align-items: center; gap: 8px; font-weight: 600; color: var(--text-dark); }
+  .check input { height: auto; }
+
+  .messages { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+  .msg.error { background: #fee2e2; color: #991b1b; }
+  .msg.warning { background: #fef3c7; color: #92400e; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 14px; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-light); }
+  td.date { white-space: nowrap; font-weight: 700; color: var(--primary); }
+  td.date small { display: block; font-weight: 400; color: var(--text-light); }
+  .label { font-weight: 600; }
+  .note { margin-top: 4px; color: var(--text-light); font-size: 13px; }
+  .rule { color: var(--text-light); font-size: 12px; white-space: nowrap; }
+
+  .status { display: inline-block; border-radius: var(--pill); padding: 2px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .status.past { background: #f3f4f6; color: #6b7280; }
+  .status.soon { background: #fee2e2; color: var(--danger); }
+  .status.upcoming { background: var(--accent-tint); color: var(--primary); }
+
+  tr.past td { opacity: 0.55; }
+
+  .disclaimer { margin-top: 20px; font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+  .empty { color: var(--text-light); text-align: center; padding: 24px; }
+
+  @media (max-width: 700px) {
+    .topbar { padding: 0 16px; gap: 14px; }
+    th.rule-col, td.rule-cell { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand-name" href="../index.html">Patenter</a>
+  <div class="topbar-spacer"></div>
+  <a class="link" href="../index.html">Documents</a>
+  <a class="link" href="../find/index.html">Find</a>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Deadline calculator</h1>
+    <p>Key dates for a first filing, a PCT application or a European application:
+       priority year, publication, PCT national phase, EP examination and renewal fees.</p>
+  </div>
+
+  <form class="card" id="form">
+    <div class="form-grid">
+      <label>Application
+        <select id="route">
+          <option value="national">First filing (national)</option>
+          <option value="ep">European application (EP)</option>
+          <option value="pct">PCT application</option>
+        </select>
+      </label>
+      <label>Reference <small>optional, e.g. case number</small>
+        <input id="reference" maxlength="80" placeholder="e.g. P1234EP">
+      </label>
+      <label>Filing date
+        <input type="date" id="filingDate" required>
+      </label>
+      <label>Earliest priority date <small>leave empty if none</small>
+        <input type="date" id="priorityDate">
+      </label>
+      <label id="searchReportField">Search report published <small>EP Bulletin mention</small>
+        <input type="date" id="searchReportDate">
+      </label>
+      <label id="isrField">Search report transmitted <small>PCT ISR, optional</small>
+        <input type="date" id="isrDate">
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="submit">Calculate</button>
+      <button class="btn btn-secondary" type="button" id="icsBtn" disabled>Add to calendar (.ics)</button>
+      <label class="check" id="renewalToggle"><input type="checkbox" id="showAllRenewals"> Show all renewal years</label>
+    </div>
+
+    <div class="messages" id="messages" role="alert"></div>
+  </form>
+
+  <section class="card" aria-live="polite">
+    <div id="output"><p class="empty">Enter a filing date to see the deadlines.</p></div>
+    <p class="disclaimer">
+      Dates falling on a Saturday or Sunday move to the next working day; public holidays
+      and office closures are not taken into account. Periods can also change through
+      extensions, further processing or loss of rights. Always verify deadlines against the
+      official register and your docketing system. This is not legal advice.
+    </p>
+  </section>
+</main>
+
+<script src="../../shared/auth-client.js"></script>
+<script src="../../shared/patent-tools.js"></script>
+<script>
+PatenterAuth.requireSignIn();
+
+const $ = id => document.getElementById(id);
+const STORE_KEY = "patenter_deadline_form";
+
+let current = [];
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function todayISO() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())).toISOString().slice(0, 10);
+}
+
+function formatLong(iso) {
+  return PatentTools.parseDate(iso).toLocaleDateString(undefined, {
+    weekday: "short", year: "numeric", month: "short", day: "numeric", timeZone: "UTC"
+  });
+}
+
+function readForm() {
+  return {
+    route: $("route").value,
+    reference: $("reference").value.trim(),
+    filingDate: $("filingDate").value,
+    priorityDate: $("priorityDate").value,
+    searchReportDate: $("route").value === "ep" ? $("searchReportDate").value : "",
+    isrDate: $("route").value === "pct" ? $("isrDate").value : ""
+  };
+}
+
+function updateFields() {
+  const route = $("route").value;
+  $("searchReportField").hidden = route !== "ep";
+  $("isrField").hidden = route !== "pct";
+  $("renewalToggle").hidden = route !== "ep";
+}
+
+function statusFor(days) {
+  if (days < 0) return `<span class="status past">Passed</span>`;
+  if (days <= 30) return `<span class="status soon">${days === 0 ? "Today" : `In ${days} day${days === 1 ? "" : "s"}`}</span>`;
+  return `<span class="status upcoming">In ${days} days</span>`;
+}
+
+function render() {
+
+  const input = readForm();
+  const { deadlines, errors, warnings } = PatentTools.computeDeadlines(input);
+
+  $("messages").innerHTML =
+    errors.map(e => `<div class="msg error">${escapeHTML(e)}</div>`).join("") +
+    warnings.map(w => `<div class="msg warning">${escapeHTML(w)}</div>`).join("");
+
+  if (errors.length) {
+    current = [];
+    $("icsBtn").disabled = true;
+    $("output").innerHTML = `<p class="empty">Fix the fields above to see the deadlines.</p>`;
+    return;
+  }
+
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(input)); } catch {}
+
+  const today = todayISO();
+  const showAll = $("showAllRenewals").checked;
+
+  // Without "show all", only the next three renewal fees are listed.
+  let renewalsShown = 0;
+  current = deadlines.filter(d => {
+    if (d.group !== "renewal" || showAll) return true;
+    if (d.dueDate < today) return false;
+    return renewalsShown++ < 3;
+  });
+
+  $("icsBtn").disabled = current.length === 0;
+
+  $("output").innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Deadline</th><th class="rule-col">Basis</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        ${current.map(d => {
+          const days = PatentTools.daysBetween(today, d.dueDate);
+          return `
+            <tr class="${days < 0 ? "past" : ""}">
+              <td class="date">${escapeHTML(formatLong(d.dueDate))}
+                ${d.shifted ? `<small>moved from ${escapeHTML(formatLong(d.date))} (weekend)</small>` : ""}
+              </td>
+              <td>
+                <div class="label">${escapeHTML(d.label)}</div>
+                ${d.note ? `<div class="note">${escapeHTML(d.note)}</div>` : ""}
+              </td>
+              <td class="rule rule-cell">${escapeHTML(d.rule)}</td>
+              <td>${statusFor(days)}</td>
+            </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+}
+
+$("form").addEventListener("submit", event => {
+  event.preventDefault();
+  render();
+});
+
+$("route").addEventListener("change", () => {
+  updateFields();
+  if ($("filingDate").value) render();
+});
+
+$("showAllRenewals").addEventListener("change", () => {
+  if ($("filingDate").value) render();
+});
+
+$("icsBtn").addEventListener("click", () => {
+
+  const today = todayISO();
+  const upcoming = current.filter(d => d.dueDate >= today);
+
+  if (upcoming.length === 0) {
+    alert("All of these deadlines have passed.");
+    return;
+  }
+
+  const reference = $("reference").value.trim();
+  const ics = PatentTools.deadlinesToICS(upcoming, reference);
+  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${(reference || "patent-deadlines").replace(/[^\w.-]+/g, "_")}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+});
+
+// Restore the last calculation.
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (saved && typeof saved === "object") {
+    for (const key of ["route", "reference", "filingDate", "priorityDate", "searchReportDate", "isrDate"]) {
+      if (typeof saved[key] === "string") $(key).value = saved[key];
+    }
+  }
+} catch {}
+
+updateFields();
+
+if ($("filingDate").value) render();
+</script>
+</body>
+</html>

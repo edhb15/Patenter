@@ -19,6 +19,10 @@
       box-sizing: border-box;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       font-family: 'Open Sans', sans-serif;
       background-color: #F4F4F4;
@@ -82,18 +86,62 @@
       opacity: 0.95;
     }
 
+    /* TABS */
+
+    .tabs {
+      max-width: 900px;
+      margin: -40px auto 0;
+      padding: 0 20px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab {
+      background: rgba(255,255,255,0.85);
+      border: none;
+      border-radius: 14px 14px 0 0;
+      padding: 12px 22px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0D3B66;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: white;
+    }
+
+    .tab .badge {
+      display: inline-block;
+      min-width: 20px;
+      margin-left: 6px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: #00B4D8;
+      color: white;
+      font-size: 0.75rem;
+      line-height: 20px;
+    }
+
     /* SEARCH */
 
     .search-section {
-      margin-top: -40px;
       padding: 0 20px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
     }
 
     .search-box {
       max-width: 900px;
       margin: auto;
       background: white;
-      border-radius: 20px;
+      border-radius: 0 20px 20px 20px;
       padding: 25px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 
@@ -102,7 +150,8 @@
       flex-wrap: wrap;
     }
 
-    .search-box input {
+    .search-box input,
+    .search-box textarea {
       flex: 1;
       min-width: 250px;
       border: none;
@@ -110,7 +159,15 @@
       padding: 18px;
       border-radius: 14px;
       font-size: 1rem;
+      font-family: inherit;
       outline: none;
+    }
+
+    .search-box textarea {
+      flex-basis: 100%;
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.6;
     }
 
     .search-box button {
@@ -129,6 +186,59 @@
       background-color: #0097c2;
     }
 
+    .search-box button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .search-box .secondary {
+      background: #F4F4F4;
+      color: #0D3B66;
+    }
+
+    .search-box .secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .advanced {
+      flex-basis: 100%;
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .advanced.open {
+      display: grid;
+    }
+
+    .advanced label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0D3B66;
+    }
+
+    .advanced input {
+      min-width: 0;
+      padding: 12px 14px;
+    }
+
+    .hint {
+      flex-basis: 100%;
+      font-size: 0.85rem;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .form-error {
+      flex-basis: 100%;
+      color: #b91c1c;
+      font-size: 0.9rem;
+      display: none;
+    }
+
     /* RESULTS */
 
     .results-section {
@@ -137,15 +247,47 @@
       margin: auto;
     }
 
+    .results-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
     .results-title {
       font-family: 'Montserrat', sans-serif;
-      margin-bottom: 30px;
       text-align: center;
       color: #0D3B66;
       font-size: 2rem;
     }
 
-    #results {
+    .results-query {
+      flex-basis: 100%;
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+
+    .watch-btn {
+      display: none;
+      background: white;
+      border: 2px solid #00B4D8;
+      color: #0D3B66;
+      border-radius: 14px;
+      padding: 8px 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .watch-btn:hover {
+      background: #E6F7FB;
+    }
+
+    #results,
+    #compareRefs {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 25px;
@@ -169,13 +311,151 @@
     .patent-card h3 {
       color: #0D3B66;
       font-family: 'Montserrat', sans-serif;
-      margin-bottom: 15px;
+      margin-bottom: 8px;
       font-size: 1.2rem;
+    }
+
+    .patent-card .meta {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 12px;
     }
 
     .patent-card p {
       color: #555;
       line-height: 1.7;
+    }
+
+    /* COMPARISON */
+
+    .analysis {
+      background: white;
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+
+    .analysis h1, .analysis h2, .analysis h3 {
+      color: #0D3B66;
+      font-family: 'Montserrat', sans-serif;
+      margin: 18px 0 10px;
+    }
+
+    .analysis p, .analysis ul, .analysis ol {
+      margin-bottom: 12px;
+    }
+
+    .analysis ul, .analysis ol {
+      padding-left: 24px;
+    }
+
+    .analysis table {
+      border-collapse: collapse;
+      margin: 12px 0;
+      min-width: 60%;
+    }
+
+    .analysis th, .analysis td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .analysis th {
+      background: #f3f4f6;
+    }
+
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      color: #0D3B66;
+      margin: 10px 0 20px;
+    }
+
+    /* WATCHLIST */
+
+    .watch-list {
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .watch-item {
+      background: white;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.06);
+      border-left: 5px solid #e5e7eb;
+    }
+
+    .watch-item.has-new {
+      border-left-color: #00B4D8;
+    }
+
+    .watch-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .watch-name {
+      flex: 1;
+      min-width: 200px;
+      font-weight: 700;
+      color: #0D3B66;
+    }
+
+    .watch-status {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    .watch-status.new {
+      color: #0D3B66;
+      font-weight: 700;
+    }
+
+    .watch-item button {
+      background: #F4F4F4;
+      color: #0D3B66;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .watch-item button:hover {
+      background: #e5e7eb;
+    }
+
+    .watch-query {
+      margin-top: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .watch-new {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .watch-new a {
+      background: #E6F7FB;
+      color: #0D3B66;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      text-decoration: none;
     }
 
     /* MODAL */
@@ -251,6 +531,7 @@
       font-size: 1.2rem;
       color: #0D3B66;
       padding: 40px;
+      grid-column: 1 / -1;
     }
 
     @media(max-width: 768px) {
@@ -259,12 +540,21 @@
         gap: 10px;
       }
 
+      nav a {
+        margin: 0 8px;
+      }
+
       .hero h1 {
         font-size: 2.2rem;
       }
 
       .search-box {
         flex-direction: column;
+      }
+
+      .tab {
+        padding: 10px 12px;
+        font-size: 0.85rem;
       }
     }
   </style>
@@ -279,9 +569,9 @@
 
     <nav>
       <a href="/app/index.html">Home</a>
-      <a href="#">Search</a>
-      <a href="#">Features</a>
-      <a href="#">Pricing</a>
+      <a href="/app/editor/document.html">Editor</a>
+      <a href="/app/ai/index.html">AI</a>
+      <a href="/app/deadlines/index.html">Deadlines</a>
     </nav>
   </header>
 
@@ -291,36 +581,130 @@
     <h1>Search Global Patents</h1>
 
     <p>
-      Instantly search patents from the European Patent Office database
-      and explore innovation from companies around the world.
+      Search worldwide patent publications from the European Patent Office,
+      compare your claims with the closest prior art, and watch competitors
+      for new publications.
     </p>
   </section>
+
+  <!-- TABS -->
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="search" role="tab">Search</button>
+    <button class="tab" data-tab="compare" role="tab">Compare a claim</button>
+    <button class="tab" data-tab="watch" role="tab">Watchlist<span class="badge" id="watchBadge" hidden></span></button>
+  </div>
 
   <!-- SEARCH -->
 
   <section class="search-section">
-    <div class="search-box">
-      <input
-        type="text"
-        id="companyInput"
-        placeholder="Enter company name..."
-      />
 
-      <button onclick="searchPatents()">
-        Search Patents
-      </button>
+    <div class="panel active" id="panel-search">
+      <form class="search-box" id="searchForm">
+        <input
+          type="text"
+          id="keywordsInput"
+          placeholder="Keywords in title or abstract, e.g. solar panel cleaning robot"
+          maxlength="200"
+        />
+
+        <button type="submit" id="searchBtn">
+          Search Patents
+        </button>
+
+        <button type="button" class="secondary" id="advancedToggle" aria-expanded="false">
+          Advanced
+        </button>
+
+        <div class="advanced" id="advancedFields">
+          <label>Applicant / company
+            <input type="text" id="applicantInput" placeholder="e.g. Siemens" maxlength="200">
+          </label>
+          <label>Inventor
+            <input type="text" id="inventorInput" placeholder="e.g. Ada Lovelace" maxlength="200">
+          </label>
+          <label>CPC class
+            <input type="text" id="cpcInput" placeholder="e.g. H04L 9/32 or A61K" maxlength="40">
+          </label>
+          <label>Publication number
+            <input type="text" id="numberInput" placeholder="e.g. EP1000000" maxlength="40">
+          </label>
+          <label>Published from
+            <input type="date" id="dateFromInput">
+          </label>
+          <label>Published to
+            <input type="date" id="dateToInput">
+          </label>
+        </div>
+
+        <p class="form-error" id="searchError" role="alert"></p>
+      </form>
     </div>
+
+    <div class="panel" id="panel-compare">
+      <form class="search-box" id="compareForm">
+        <textarea
+          id="claimInput"
+          placeholder="Paste the claim to compare, e.g. 1. A widget comprising a housing and a gear train arranged in the housing..."
+          maxlength="6000"
+        ></textarea>
+
+        <input type="text" id="compareKeywords" placeholder="Search keywords (optional, AI picks them if empty)" maxlength="200">
+        <input type="text" id="compareCpc" placeholder="CPC class (optional)" maxlength="40" style="flex: 0 1 200px; min-width: 160px;">
+
+        <button type="submit" id="compareBtn">
+          Compare
+        </button>
+
+        <p class="hint">
+          Searches the EPO database for the closest documents and has Patenter AI
+          compare them feature by feature with your claim. Only abstracts are
+          compared, so treat the result as a starting point. Your claim is sent
+          to the AI provider, so only use it for inventions you may disclose.
+        </p>
+
+        <p class="form-error" id="compareError" role="alert"></p>
+      </form>
+    </div>
+
+    <div class="panel" id="panel-watch">
+      <div class="search-box">
+        <p class="hint" style="flex: 1;">
+          Save a search with <strong>Watch this search</strong> and check it here
+          for publications that are new since you last looked. The watchlist is
+          stored in this browser.
+        </p>
+        <button type="button" id="checkAllBtn">Check all</button>
+      </div>
+    </div>
+
   </section>
 
   <!-- RESULTS -->
 
   <section class="results-section">
 
-    <h2 class="results-title">
-      Patent Results
-    </h2>
+    <div id="searchResults">
+      <div class="results-head">
+        <h2 class="results-title">
+          Patent Results
+        </h2>
+        <button type="button" class="watch-btn" id="watchBtn">Watch this search</button>
+        <div class="results-query" id="resultsQuery"></div>
+      </div>
 
-    <div id="results"></div>
+      <div id="results"></div>
+    </div>
+
+    <div id="compareResults" hidden>
+      <div class="analysis" id="compareAnalysis"></div>
+      <h2 class="section-title" id="compareRefsTitle"></h2>
+      <div id="compareRefs"></div>
+    </div>
+
+    <div id="watchResults" hidden>
+      <div class="watch-list" id="watchList"></div>
+    </div>
 
   </section>
 
@@ -346,11 +730,17 @@
     <p>&copy; 2026 Patenter. All rights reserved.</p>
 
     <p>
-      Follow us on
-      <a href="#">Social Media</a>
+      Patenter AI can make mistakes and does not give legal advice.
     </p>
   </footer>
 
+  <!-- Pinned versions + SRI so a changed CDN file is refused, not run -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@18.0.14/lib/marked.umd.js"
+          integrity="sha384-2vpGtuKqJvFlwJqYnf/wUMuzUfhUnYBt9oay0e2yaFcq0Dh6/aEbQ8YAOeKGzlYo"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.16/dist/purify.min.js"
+          integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL"
+          crossorigin="anonymous"></script>
   <script src="../../shared/auth-client.js"></script>
   <script>
     // Patent search runs on backend/server.js and needs a signed-in user.
@@ -375,71 +765,194 @@
       return null;
     }
 
-    async function searchPatents() {
+    function espacenetLink(patentNumber) {
+      return `https://worldwide.espacenet.com/patent/search?q=${encodeURIComponent(`pn=${patentNumber}`)}`;
+    }
 
-      const company =
-        document.getElementById("companyInput")
-        .value
-        .trim();
+    // AI output is untrusted too (prompt injection), so it is sanitized.
+    function renderMarkdown(text) {
+      if (window.marked && window.DOMPurify) {
+        return DOMPurify.sanitize(marked.parse(String(text || "")));
+      }
+      return `<p>${escapeHTML(text).replace(/\n/g, "<br>")}</p>`;
+    }
 
-      const resultsDiv =
-        document.getElementById("results");
+    function formatPubDate(value) {
+      return /^\d{8}$/.test(value || "")
+        ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}`
+        : value;
+    }
 
-      if (!company) {
-        alert("Please enter a company name");
+    // Returns { ok, status, data }; sends to sign-in on 401.
+    async function postJSON(path, body) {
+      const response = await PatenterAuth.apiFetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (response.status === 401) {
+        PatenterAuth.goToLogin();
+      }
+
+      let data = {};
+      try { data = await response.json(); } catch {}
+
+      return { ok: response.ok, status: response.status, data };
+    }
+
+    function errorMessage(result, fallback) {
+      if (result.status === 429) return "Too many requests. Please wait a few minutes.";
+      return result.data.error || result.data.message || fallback;
+    }
+
+    // =========================================================
+    // TABS
+    // =========================================================
+
+    const panels = {
+      search: ["panel-search", "searchResults"],
+      compare: ["panel-compare", "compareResults"],
+      watch: ["panel-watch", "watchResults"]
+    };
+
+    function showTab(name) {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.tab === name);
+        tab.setAttribute("aria-selected", tab.dataset.tab === name);
+      });
+
+      for (const [key, [panel, results]] of Object.entries(panels)) {
+        document.getElementById(panel).classList.toggle("active", key === name);
+        document.getElementById(results).hidden = key !== name;
+      }
+
+      if (name === "watch") renderWatchlist();
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => showTab(tab.dataset.tab));
+    });
+
+    // =========================================================
+    // SEARCH
+    // =========================================================
+
+    const advancedToggle = document.getElementById("advancedToggle");
+
+    advancedToggle.addEventListener("click", () => {
+      const open = document.getElementById("advancedFields").classList.toggle("open");
+      advancedToggle.setAttribute("aria-expanded", open);
+    });
+
+    function readSearchForm() {
+      const value = id => document.getElementById(id).value.trim();
+      const query = {
+        keywords: value("keywordsInput"),
+        applicant: value("applicantInput"),
+        inventor: value("inventorInput"),
+        cpc: value("cpcInput"),
+        publicationNumber: value("numberInput"),
+        dateFrom: value("dateFromInput"),
+        dateTo: value("dateToInput")
+      };
+      for (const key of Object.keys(query)) {
+        if (!query[key]) delete query[key];
+      }
+      return query;
+    }
+
+    function fillSearchForm(query) {
+      const set = (id, value) => { document.getElementById(id).value = value || ""; };
+      set("keywordsInput", query.keywords);
+      set("applicantInput", query.applicant);
+      set("inventorInput", query.inventor);
+      set("cpcInput", query.cpc);
+      set("numberInput", query.publicationNumber);
+      set("dateFromInput", query.dateFrom);
+      set("dateToInput", query.dateTo);
+
+      const hasAdvanced = Object.keys(query).some(key => key !== "keywords");
+      document.getElementById("advancedFields").classList.toggle("open", hasAdvanced);
+      advancedToggle.setAttribute("aria-expanded", hasAdvanced);
+    }
+
+    function describeQuery(query) {
+      const labels = {
+        keywords: "", applicant: "Applicant: ", inventor: "Inventor: ", cpc: "CPC: ",
+        publicationNumber: "No. ", dateFrom: "From ", dateTo: "To "
+      };
+      return Object.entries(query)
+        .map(([key, value]) => labels[key] + value)
+        .join(" · ");
+    }
+
+    let lastSearch = null;
+
+    function showSearchError(message) {
+      const el = document.getElementById("searchError");
+      el.textContent = message || "";
+      el.style.display = message ? "block" : "none";
+    }
+
+    async function searchPatents(query = readSearchForm()) {
+
+      const resultsDiv = document.getElementById("results");
+      const watchBtn = document.getElementById("watchBtn");
+
+      showSearchError("");
+
+      if (Object.keys(query).length === 0) {
+        showSearchError("Enter keywords or fill in an advanced field.");
         return;
       }
 
-      resultsDiv.innerHTML =
-        `<div class="loading">Searching patents...</div>`;
+      watchBtn.style.display = "none";
+      document.getElementById("resultsQuery").textContent = "";
+      resultsDiv.innerHTML = `<div class="loading">Searching patents...</div>`;
 
       try {
 
+        const result = await postJSON("/search", { query });
 
-        const response = await PatenterAuth.apiFetch(
-          "/search",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              company
-            })
-          }
-        );
+        if (result.status === 401) return;
 
-        if (response.status === 401) {
-          PatenterAuth.goToLogin();
+        if (!result.ok) {
+          resultsDiv.innerHTML = "";
+          showSearchError(errorMessage(result, "Error fetching patents."));
           return;
         }
 
-        if (!response.ok) {
-          resultsDiv.innerHTML = response.status === 429
-            ? `<div class="loading">Too many searches. Please wait a few minutes.</div>`
-            : `<div class="loading">Error fetching patents.</div>`;
+        const patents = result.data.patents;
+
+        lastSearch = { query, patents };
+
+        document.getElementById("resultsQuery").textContent = result.data.query || "";
+        watchBtn.style.display = "inline-block";
+        watchBtn.textContent = findWatch(query) ? "Watching ✓" : "Watch this search";
+
+        resultsDiv.innerHTML = "";
+
+        if (!patents || !patents.length) {
+          resultsDiv.innerHTML = `<div class="loading">No patents found.</div>`;
           return;
         }
 
-        const data = await response.json();
-const patents = data.patents;   // unwrap it
-
-resultsDiv.innerHTML = "";
-
-if (!patents || !patents.length) {
-  resultsDiv.innerHTML = `<div class="loading">No patents found.</div>`;
-  return;
-}
-patents.forEach(patent => {
-  const card = document.createElement("div");
-  card.className = "patent-card";
-  card.innerHTML = `
-    <h3>${escapeHTML(patent.title)}</h3>
-    <p>${escapeHTML(patent.summary)}</p>
-  `;
-  card.onclick = () => openPatent(patent);
-  resultsDiv.appendChild(card);
-});
+        patents.forEach(patent => {
+          const card = document.createElement("div");
+          card.className = "patent-card";
+          card.innerHTML = `
+            <h3>${escapeHTML(patent.title)}</h3>
+            <div class="meta">${escapeHTML(patent.patentNumber)}${
+              patent.applicant && patent.applicant !== "Not loaded" ? " · " + escapeHTML(patent.applicant) : ""
+            }${
+              /^\d{8}$/.test(patent.publicationDate || "") ? " · " + escapeHTML(formatPubDate(patent.publicationDate)) : ""
+            }</div>
+            <p>${escapeHTML(patent.summary)}</p>
+          `;
+          card.onclick = () => openPatent(patent);
+          resultsDiv.appendChild(card);
+        });
 
       } catch (err) {
 
@@ -452,19 +965,26 @@ patents.forEach(patent => {
         `;
       }
     }
+
+    document.getElementById("searchForm").addEventListener("submit", event => {
+      event.preventDefault();
+      searchPatents();
+    });
+
     function openPatent(patent) {
-  document.getElementById("modal").style.display = "flex";
-  const link = safeEspacenetLink(patent.link);
-  document.getElementById("modalBody").innerHTML = `
-    <h2>${escapeHTML(patent.title)}</h2>
-    <p><strong>Patent Number:</strong> ${escapeHTML(patent.patentNumber)}</p>
-    <p><strong>Inventor:</strong> ${escapeHTML(patent.inventor)}</p>
-    <p><strong>Publication Date:</strong> ${escapeHTML(patent.publicationDate)}</p>
-    <h3>Summary</h3>
-    <p>${escapeHTML(patent.summary)}</p>
-    ${link ? `<p><a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">View full patent on Espacenet →</a></p>` : ""}
-  `;
-}
+      document.getElementById("modal").style.display = "flex";
+      const link = safeEspacenetLink(patent.link);
+      document.getElementById("modalBody").innerHTML = `
+        <h2>${escapeHTML(patent.title)}</h2>
+        <p><strong>Patent Number:</strong> ${escapeHTML(patent.patentNumber)}</p>
+        ${patent.applicant ? `<p><strong>Applicant:</strong> ${escapeHTML(patent.applicant)}</p>` : ""}
+        <p><strong>Inventor:</strong> ${escapeHTML(patent.inventor)}</p>
+        <p><strong>Publication Date:</strong> ${escapeHTML(formatPubDate(patent.publicationDate))}</p>
+        ${patent.summary ? `<h3>Summary</h3><p>${escapeHTML(patent.summary)}</p>` : ""}
+        ${patent.abstract ? `<h3>Abstract</h3><p>${escapeHTML(patent.abstract)}</p>` : ""}
+        ${link ? `<p><a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">View full patent on Espacenet →</a></p>` : ""}
+      `;
+    }
 
     function closeModal() {
 
@@ -482,6 +1002,328 @@ patents.forEach(patent => {
       if (event.target === modal) {
         closeModal();
       }
+    }
+
+    // =========================================================
+    // COMPARE A CLAIM WITH PRIOR ART
+    // =========================================================
+
+    function showCompareError(message) {
+      const el = document.getElementById("compareError");
+      el.textContent = message || "";
+      el.style.display = message ? "block" : "none";
+    }
+
+    async function compareClaim() {
+
+      const claim = document.getElementById("claimInput").value.trim();
+      const keywords = document.getElementById("compareKeywords").value.trim();
+      const cpc = document.getElementById("compareCpc").value.trim();
+
+      const analysis = document.getElementById("compareAnalysis");
+      const refs = document.getElementById("compareRefs");
+      const refsTitle = document.getElementById("compareRefsTitle");
+      const button = document.getElementById("compareBtn");
+
+      showCompareError("");
+
+      if (claim.length < 20) {
+        showCompareError("Paste the full claim to compare.");
+        return;
+      }
+
+      button.disabled = true;
+      refs.innerHTML = "";
+      refsTitle.textContent = "";
+      analysis.innerHTML = `<div class="loading">Searching prior art and comparing features. This can take a minute...</div>`;
+
+      try {
+
+        const body = { claim };
+        if (keywords) body.keywords = keywords;
+        if (cpc) body.cpc = cpc;
+
+        const result = await postJSON("/compare", body);
+
+        if (result.status === 401) return;
+
+        if (!result.ok) {
+          analysis.innerHTML = "";
+          showCompareError(errorMessage(result, "The comparison failed."));
+          return;
+        }
+
+        const data = result.data;
+
+        analysis.innerHTML =
+          `<p class="results-query">Search: ${escapeHTML(data.query || "")}</p>` +
+          renderMarkdown(data.analysis);
+
+        refsTitle.textContent = data.references.length ? "Compared documents" : "";
+
+        data.references.forEach((ref, i) => {
+          const card = document.createElement("div");
+          card.className = "patent-card";
+          card.innerHTML = `
+            <h3>D${i + 1}: ${escapeHTML(ref.title)}</h3>
+            <div class="meta">${escapeHTML(ref.patentNumber)} · ${escapeHTML(ref.applicant || "")}</div>
+            <p>${escapeHTML(ref.abstract || "No abstract available.")}</p>
+          `;
+          card.onclick = () => openPatent(ref);
+          refs.appendChild(card);
+        });
+
+      } catch (err) {
+
+        console.error(err);
+        analysis.innerHTML = "";
+        showCompareError("The comparison failed.");
+
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    document.getElementById("compareForm").addEventListener("submit", event => {
+      event.preventDefault();
+      compareClaim();
+    });
+
+    // =========================================================
+    // WATCHLIST (stored in this browser)
+    // =========================================================
+    // Each watch: { id, name, query, seen: [numbers], newNumbers: [numbers],
+    // lastChecked }. Checks use "lite" searches: no AI, no detail calls.
+
+    const WATCH_KEY = "patenter_watchlist";
+    const MAX_WATCHES = 20;
+
+    function loadWatches() {
+      try {
+        const list = JSON.parse(localStorage.getItem(WATCH_KEY) || "[]");
+        return Array.isArray(list) ? list.filter(w => w && w.query && Array.isArray(w.seen)) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveWatches(list) {
+      try {
+        localStorage.setItem(WATCH_KEY, JSON.stringify(list));
+      } catch {
+        alert("Could not save the watchlist in this browser.");
+      }
+      updateWatchBadge(list);
+    }
+
+    function queryKey(query) {
+      return JSON.stringify(Object.keys(query).sort().map(key => [key, String(query[key]).toLowerCase()]));
+    }
+
+    function findWatch(query) {
+      return loadWatches().find(w => queryKey(w.query) === queryKey(query));
+    }
+
+    function updateWatchBadge(list = loadWatches()) {
+      const count = list.reduce((sum, w) => sum + (w.newNumbers || []).length, 0);
+      const badge = document.getElementById("watchBadge");
+      badge.hidden = count === 0;
+      badge.textContent = count;
+    }
+
+    document.getElementById("watchBtn").addEventListener("click", () => {
+
+      if (!lastSearch) return;
+
+      const list = loadWatches();
+
+      if (findWatch(lastSearch.query)) {
+        showTab("watch");
+        return;
+      }
+
+      if (list.length >= MAX_WATCHES) {
+        alert(`You can watch up to ${MAX_WATCHES} searches. Remove one first.`);
+        return;
+      }
+
+      list.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        name: describeQuery(lastSearch.query),
+        query: lastSearch.query,
+        seen: lastSearch.patents.map(p => p.patentNumber),
+        newNumbers: [],
+        lastChecked: new Date().toISOString()
+      });
+
+      saveWatches(list);
+      document.getElementById("watchBtn").textContent = "Watching ✓";
+    });
+
+    function formatWhen(iso) {
+      const date = new Date(iso);
+      return isNaN(date) ? "never" : date.toLocaleString(undefined, {
+        dateStyle: "medium", timeStyle: "short"
+      });
+    }
+
+    function renderWatchlist() {
+
+      const list = loadWatches();
+      const container = document.getElementById("watchList");
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="loading">No watched searches yet. Run a search and choose "Watch this search".</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(w => {
+        const fresh = w.newNumbers || [];
+        return `
+          <div class="watch-item ${fresh.length ? "has-new" : ""}" data-id="${escapeHTML(w.id)}">
+            <div class="watch-top">
+              <span class="watch-name">${escapeHTML(w.name)}</span>
+              <span class="watch-status ${fresh.length ? "new" : ""}">
+                ${fresh.length ? `${fresh.length} new` : `Checked ${escapeHTML(formatWhen(w.lastChecked))}`}
+              </span>
+              <button type="button" data-action="check">Check</button>
+              <button type="button" data-action="open">Open</button>
+              ${fresh.length ? `<button type="button" data-action="seen">Mark as seen</button>` : ""}
+              <button type="button" data-action="remove" aria-label="Remove">✕</button>
+            </div>
+            ${w.error ? `<div class="watch-query" style="color:#b91c1c">${escapeHTML(w.error)}</div>` : ""}
+            ${fresh.length ? `<div class="watch-new">${fresh.map(n =>
+              `<a href="${escapeHTML(espacenetLink(n))}" target="_blank" rel="noopener noreferrer">${escapeHTML(n)}</a>`
+            ).join("")}</div>` : ""}
+          </div>`;
+      }).join("");
+    }
+
+    function updateWatch(id, changes) {
+      const list = loadWatches();
+      const watch = list.find(w => w.id === id);
+      if (!watch) return null;
+      Object.assign(watch, changes);
+      saveWatches(list);
+      return watch;
+    }
+
+    const checkingIds = new Set();
+
+    async function checkWatch(id) {
+
+      const watch = loadWatches().find(w => w.id === id);
+      if (!watch) return;
+
+      checkingIds.add(id);
+      renderWatchlistWithState();
+
+      try {
+
+        const result = await postJSON("/search", { query: watch.query, lite: true });
+
+        if (!result.ok) {
+          updateWatch(id, { error: errorMessage(result, "Check failed.") });
+          return result.status;
+        }
+
+        const current = loadWatches().find(w => w.id === id);
+        if (!current) return;
+
+        const seen = new Set(current.seen);
+        const fresh = new Set(current.newNumbers || []);
+
+        for (const patent of result.data.patents) {
+          if (!seen.has(patent.patentNumber)) fresh.add(patent.patentNumber);
+        }
+
+        updateWatch(id, { newNumbers: [...fresh], lastChecked: new Date().toISOString(), error: "" });
+
+      } catch (err) {
+        console.error(err);
+        updateWatch(id, { error: "Check failed." });
+      } finally {
+        checkingIds.delete(id);
+        renderWatchlistWithState();
+      }
+    }
+
+    function renderWatchlistWithState() {
+      renderWatchlist();
+      for (const id of checkingIds) {
+        const status = document.querySelector(`.watch-item[data-id="${CSS.escape(id)}"] .watch-status`);
+        if (status) status.textContent = "Checking…";
+      }
+    }
+
+    document.getElementById("watchList").addEventListener("click", event => {
+
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const id = button.closest(".watch-item").dataset.id;
+      const watch = loadWatches().find(w => w.id === id);
+      if (!watch) return;
+
+      switch (button.dataset.action) {
+
+        case "check":
+          checkWatch(id);
+          break;
+
+        case "open":
+          fillSearchForm(watch.query);
+          showTab("search");
+          searchPatents(watch.query);
+          break;
+
+        case "seen":
+          updateWatch(id, { seen: [...new Set([...watch.seen, ...(watch.newNumbers || [])])], newNumbers: [] });
+          renderWatchlist();
+          break;
+
+        case "remove":
+          if (confirm(`Stop watching "${watch.name}"?`)) {
+            saveWatches(loadWatches().filter(w => w.id !== id));
+            renderWatchlist();
+          }
+          break;
+      }
+    });
+
+    document.getElementById("checkAllBtn").addEventListener("click", async () => {
+      const button = document.getElementById("checkAllBtn");
+      button.disabled = true;
+      try {
+        // One at a time, so the rate limit isn't hit all at once.
+        for (const watch of loadWatches()) {
+          const status = await checkWatch(watch.id);
+          if (status === 429 || status === 401) break;
+        }
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    // =========================================================
+    // START
+    // =========================================================
+
+    updateWatchBadge();
+
+    // The editor's claims panel can send a claim here to compare.
+    try {
+      const claim = localStorage.getItem("patenter_compare_claim");
+      if (claim) {
+        localStorage.removeItem("patenter_compare_claim");
+        document.getElementById("claimInput").value = claim.slice(0, 6000);
+        showTab("compare");
+      }
+    } catch {}
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("tab") && panels[params.get("tab")]) {
+      showTab(params.get("tab"));
     }
   </script>
 
