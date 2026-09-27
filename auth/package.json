@@ -1,5 +1,5 @@
 {
-  "name": "secure-auth-api",
+  "name": "patenter-auth",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -12,9 +12,10 @@
     "migrate": "prisma migrate deploy"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Patenter",
+  "license": "UNLICENSED",
+  "private": true,
+  "description": "Patenter authentication service",
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "argon2": "^0.44.0",

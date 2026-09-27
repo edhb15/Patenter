@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Limits where scripts load from and where data can be sent. When deploying,
-       replace the localhost API origins in connect-src with the real ones. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <!-- Limits where scripts load from and where data can be sent. The APIs are
+     served from the same origin as the pages (see deploy/Caddyfile). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Patenter</title>
   <link rel="icon" type="image/x-icon" href="/images-and-other-branding/SmallSquareLogoJpg.jpg">
@@ -265,8 +265,8 @@
 
   <!-- Hero Section -->
   <section class="hero" id="home">
-    <h1>Make patents with ease and secure inovations</h1>
-    <p>Patenter is a aplication for making patents a easier proces; for both patent attorneys and inventors, small organizations and big enterpercises</p>
+    <h1>Draft, search and protect your inventions</h1>
+    <p>Patenter makes patent work faster and easier, for patent attorneys and inventors, from start-ups to large enterprises.</p>
     <button class="btn-primary" onclick="login()">Get Started</button>
   </section>
 
@@ -274,20 +274,20 @@
   <section id="features">
     <h2 style="text-align:center; margin-bottom:40px;">Features</h2>
     <div class="features">
-      <div class="feature-card" onclick="canvas()">
+      <div class="feature-card" onclick="openAI()">
         <div class="feature-icon">✨</div>
         <h3>Make patents with AI</h3>
-        <p>Just ask your copilot, edward and get a patent aplication done for you.</p>
+        <p>Ask Patenter AI to brainstorm inventions, write claims and draft complete patent applications.</p>
       </div>
-      <div class="feature-card" onclick="serch()">
+      <div class="feature-card" onclick="search()">
         <div class="feature-icon">🔎</div>
         <h3>Search patents</h3>
-        <p>Search patents from all major patent databases in the world; with ease.</p>
+        <p>Search worldwide patent publications, with AI summaries of the most relevant results.</p>
       </div>
-      <div class="feature-card" onclick="simulator()">
+      <div class="feature-card" onclick="openEditor()">
         <div class="feature-icon">📄</div>
         <h3>Document editor</h3>
-        <p>Our own document/text editor.</p>
+        <p>A text editor built for patent applications, from abstract to claims.</p>
       </div>
     </div>
   </section>
@@ -305,19 +305,19 @@
       <div class="pricing-card">
         <h3>Basic+</h3>
         <div class="price">$10/month</div>
-        <p>Ideal for small inventors and small projects.</p>
+        <p>For inventors with several ongoing projects.</p>
         <button onclick="pricing()" class="btn-secondary">Choose Basic+</button>
       </div>
       <div class="pricing-card" style="border: 2px solid #00B4D8;">
         <h3>Pro</h3>
         <div class="price">$20/month</div>
-        <p>Get advanced features and more; ideal for small companies</p>
+        <p>Advanced features for small companies.</p>
         <button onclick="pricing()" class="btn-secondary">Choose Pro</button>
       </div>
       <div class="pricing-card">
         <h3>Pro+</h3>
         <div class="price">$25/month</div>
-        <p>Best for medium sized companies</p>
+        <p>Best for medium-sized companies.</p>
         <button onclick="pricing()" class="btn-secondary">Choose Pro+</button>
       </div>
       <div class="pricing-card">
@@ -331,7 +331,7 @@
 
   <!-- Footer -->
   <footer id="contact">
-    <p>&copy; 2026 Patenter All rights reserved.</p>
+    <p>&copy; 2026 Patenter. All rights reserved.</p>
     <p>Follow us on 
       <a href="https://www.facebook.com/patenter" style="color:#00B4D8; text-decoration:none;">Social Media</a>
     </p>
@@ -349,13 +349,13 @@
     function pricing() {
       login();
     }
-    function canvas() {
+    function openAI() {
       window.location.href = "login.html?next=" + encodeURIComponent("/app/ai/index.html");
     }
-    function serch() {
+    function search() {
       window.location.href = "login.html?next=" + encodeURIComponent("/app/find/index.html");
     }
-    function simulator() {
+    function openEditor() {
       window.location.href = "login.html?next=" + encodeURIComponent("/app/editor/document.html");
     }
   </script>

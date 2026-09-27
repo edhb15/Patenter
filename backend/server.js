@@ -26,11 +26,14 @@ function requireEnv(name) {
 // The auth service runs on 3000, so this one defaults to 3001.
 const PORT = Number(process.env.PORT) || 3001;
 
-// Only the Patenter frontend may call this API from a browser.
-// Comma-separated list, e.g. "http://localhost:5500,https://patenter.example"
-const ALLOWED_ORIGINS = (
-  process.env.ALLOWED_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500"
-)
+// Public address of the site, e.g. "https://patenter.example". Sent to
+// OpenRouter so requests are attributed to Patenter.
+const PUBLIC_URL = process.env.PUBLIC_URL || "https://patenter.app";
+
+// The frontend is normally served from the same origin (via the reverse
+// proxy), so no cross-origin access is needed. List extra browser origins
+// here only if the frontend is hosted elsewhere (comma-separated).
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map(origin => origin.trim())
   .filter(Boolean);
@@ -46,8 +49,14 @@ const OPENROUTER_API_KEY = requireEnv("OPENROUTER_API_KEY");
 // Access tokens are issued by the auth service; the secret must match.
 const JWT_ACCESS_SECRET = requireEnv("JWT_ACCESS_SECRET");
 
-// Fallback list used for both chat and summarization
-const AI_MODELS = [
+// Fallback list used for both chat and summarization, tried in order.
+//
+// Users send unpublished inventions to these models, and disclosing an
+// invention before filing can destroy its novelty. In production, set
+// AI_MODELS to paid models from providers that do not log or train on
+// prompts (and enable zero-data-retention in the OpenRouter account).
+// The free models below are only suitable for testing.
+const DEFAULT_AI_MODELS = [
   "nvidia/nemotron-3-super-120b-a12b:free",
   "openrouter/owl-alpha",
   "inclusionai/ring-2.6-1t:free",
@@ -55,6 +64,10 @@ const AI_MODELS = [
   "openai/gpt-oss-120b:free",
   "z-ai/glm-4.5-air:free"
 ];
+
+const AI_MODELS = process.env.AI_MODELS
+  ? process.env.AI_MODELS.split(",").map(model => model.trim()).filter(Boolean)
+  : DEFAULT_AI_MODELS;
 
 // How many top results get full enrichment (biblio + summary).
 // Each one costs 2 EPO calls + 1 AI call, so keep this modest.
@@ -352,8 +365,8 @@ async function callOpenRouter(messages) {
         {
           headers: {
             Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-            "HTTP-Referer": "http://localhost",
-            "X-Title": "Patenter AI",
+            "HTTP-Referer": PUBLIC_URL,
+            "X-Title": "Patenter",
             "Content-Type": "application/json"
           },
           timeout: 60000
@@ -507,6 +520,14 @@ async function enrichPatent(token, patent) {
     patent.summary = patent.summary || "Details unavailable for this patent.";
   }
 }
+
+// ============================================
+// HEALTH CHECK (used by Docker / uptime monitoring)
+// ============================================
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
 // ============================================
 // SEARCH PATENTS
@@ -696,7 +717,7 @@ if (require.main === module) {
     console.log("");
     console.log("=================================");
     console.log("🚀 Patenter Backend Running");
-    console.log(`🌍 http://localhost:${PORT}`);
+    console.log(`🌍 Listening on port ${PORT}`);
     console.log("=================================");
     console.log("");
   });

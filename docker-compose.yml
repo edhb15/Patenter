@@ -1,0 +1,65 @@
+# Runs the whole Patenter site: website + HTTPS (Caddy), auth, API, database.
+# Configure with a .env file next to this one (see deploy/.env.example), then:
+#   docker compose up -d --build
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - auth
+      - backend
+    restart: unless-stopped
+
+  auth:
+    build: ./auth
+    environment:
+      DATABASE_URL: postgresql://patenter:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/patenter
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
+      TRUST_PROXY: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
+      CONSUMER_KEY: ${CONSUMER_KEY:?set CONSUMER_KEY}
+      CONSUMER_SECRET: ${CONSUMER_SECRET:?set CONSUMER_SECRET}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?set OPENROUTER_API_KEY}
+      AI_MODELS: ${AI_MODELS:-}
+      PUBLIC_URL: https://${DOMAIN:-localhost}
+      TRUST_PROXY: "1"
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: patenter
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: patenter
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U patenter"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+  db_data:

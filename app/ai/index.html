@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Limits where scripts load from and where data can be sent. When deploying,
-     replace the localhost API origins in connect-src with the real ones. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:3000 http://localhost:3001 http://127.0.0.1:3000 http://127.0.0.1:3001; object-src 'none'; base-uri 'self'; form-action 'self'">
+<!-- Limits where scripts load from and where data can be sent. The APIs are
+     served from the same origin as the pages (see deploy/Caddyfile). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Patenter AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans&display=swap" rel="stylesheet">
@@ -130,7 +130,7 @@ header{
   padding:
     120px
     20px
-    120px
+    160px
     20px;
 
   display:flex;
@@ -184,9 +184,18 @@ header{
   padding:20px;
 
   display:flex;
+  flex-wrap:wrap;
   gap:15px;
 
   box-shadow:0 -2px 10px rgba(0,0,0,0.08);
+}
+
+.ai-notice{
+  flex-basis:100%;
+  margin-top:-5px;
+  font-size:12px;
+  color:#6b7280;
+  text-align:center;
 }
 
 textarea{
@@ -346,6 +355,11 @@ button:hover{
   <button onclick="openInEditor()">
     Open In Editor
   </button>
+  <p class="ai-notice">
+    Patenter AI can make mistakes and does not give legal advice. Have a patent
+    attorney review drafts before filing, and keep an invention confidential
+    until it has been filed.
+  </p>
 </div>
 
 <!-- Pinned versions + SRI so a changed CDN file is refused, not run -->

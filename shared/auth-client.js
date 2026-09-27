@@ -5,16 +5,16 @@
 // Each page gets a fresh token on load from /auth/refresh, which uses the
 // HttpOnly refresh cookie that JavaScript can't see.
 //
-// The APIs are expected on the same host as the page (ports 3000/3001) so
-// the SameSite=Strict refresh cookie is sent. Override for deployment by
-// defining window.PATENTER_CONFIG = { authUrl, apiUrl } before this script.
+// The APIs are served from the same origin as the pages (the reverse proxy
+// routes /auth/* to the auth service and /api/* to the backend), so the
+// SameSite=Strict refresh cookie is always sent. Override by defining
+// window.PATENTER_CONFIG = { authUrl, apiUrl } before this script.
 (function () {
   "use strict";
 
   const config = window.PATENTER_CONFIG || {};
-  const host = location.hostname || "localhost";
-  const AUTH_URL = config.authUrl || `http://${host}:3000`;
-  const API_URL = config.apiUrl || `http://${host}:3001`;
+  const AUTH_URL = config.authUrl || "";
+  const API_URL = config.apiUrl || "/api";
 
   // Path of the login page relative to the site root.
   const LOGIN_PATH = config.loginPath || "/login.html";
