@@ -69,6 +69,11 @@ Passwords are hashed with Argon2, all API endpoints require sign-in and are
 rate limited, and the pages use a strict Content Security Policy. Third-party
 API keys (EPO, OpenRouter) stay on the server.
 
+## Testing locally
+
+To try the whole site on your own computer without Docker (for example on
+an older Mac), see [`dev/README.md`](dev/README.md).
+
 ## License
 
 Copyright © 2026 Patenter. All rights reserved.
