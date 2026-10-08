@@ -52,7 +52,7 @@ node dev/start.js
 The first start takes a few minutes while it installs packages. When it
 says **Patenter is starting on http://localhost:8080**, open
 <http://localhost:8080> in your browser, click **Create account**, and try
-everything.
+everything. Passwords need at least 8 characters.
 
 Press **Ctrl+C** in Terminal to stop it.
 
@@ -61,9 +61,10 @@ Press **Ctrl+C** in Terminal to stop it.
 - Search and AI use your real EPO and OpenRouter accounts. With `AI_MODELS`
   left empty, the free testing models are used.
 - The accounts and documents you create live only on your Mac.
-- The Terminal window shows what each part is doing: `[auth]` is sign-in,
-  `[api ]` is search and AI. If something doesn't work, the error is usually
-  there.
+- The Terminal window shows one line per request: `[auth]` is sign-in,
+  `[api ]` is search and AI. If something doesn't work, the reason is usually
+  there. `POST /auth/refresh → 401 (not signed in yet, normal)` is expected
+  before you sign in.
 - If you download a newer version of the code, copy your `.env` file into
   the new folder (it's hidden in Finder; in Terminal:
   `cp old-folder/.env new-folder/`).
@@ -76,4 +77,6 @@ Press **Ctrl+C** in Terminal to stop it.
 | `Fill in ... in .env` | Open the file with `open -e .env` and add the missing keys. |
 | `command not found: node` | Install Node.js (step 1), then open a new Terminal window. |
 | `address already in use` | Patenter (or another program) is already running. Close the other Terminal window, or restart the Mac. |
+| `Validation error: password: Too small` | The password needs at least 8 characters. |
+| `→ 429` (too many requests) | Sign-up allows 5 attempts per hour. Press Ctrl+C and start Patenter again to reset it. |
 | Database login errors | If your Postgres isn't Postgres.app, add `DATABASE_URL=postgresql://user:password@localhost:5432/patenter` to `.env`. |

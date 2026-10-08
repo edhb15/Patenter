@@ -137,16 +137,51 @@ run("npx", ["prisma", "migrate", "deploy"], AUTH_DIR, "Updating database (" + DA
 
 const children = [];
 
-function start(label, command, args, cwd, port) {
+// The auth service logs one JSON object per line (see AUTH_ENV below).
+// Turn each into one short line; full request dumps hide what matters.
+function formatAuthLog(line) {
+  let entry;
+  try {
+    entry = JSON.parse(line);
+  } catch {
+    return line;
+  }
+
+  if (entry.msg === "request completed" && entry.req && entry.res) {
+    const status = entry.res.statusCode;
+    const note = entry.req.url === "/auth/refresh" && status === 401 ? "  (not signed in yet, normal)" : "";
+    return `${entry.req.method} ${entry.req.url} → ${status}${note}`;
+  }
+  if (Array.isArray(entry.issues)) {
+    const details = entry.issues.map(issue => `${(issue.path || []).join(".")}: ${issue.message}`).join("; ");
+    return `⚠ ${entry.msg}: ${details}`;
+  }
+  // Expected 4xx errors; the request line that follows shows the status.
+  if (entry.level < 50 && entry.statusCode && entry.statusCode < 500) return null;
+
+  const extra = entry.port ? ` (port ${entry.port})` : "";
+  const error = entry.err ? `\n${entry.err.stack || entry.err.message}` : "";
+  return `${entry.level >= 50 ? "❌ " : ""}${entry.msg}${extra}${error}`;
+}
+
+function start(label, command, args, cwd, port, extraEnv = {}, format = line => line) {
   const child = spawn(command, args, {
     cwd,
-    env: { ...childEnv, PORT: String(port) },
+    env: { ...childEnv, ...extraEnv, PORT: String(port) },
     stdio: ["ignore", "pipe", "pipe"],
     shell: process.platform === "win32",
   });
-  const prefix = line => line && console.log(`[${label}] ${line}`);
-  child.stdout.on("data", data => data.toString().split(/\r?\n/).forEach(prefix));
-  child.stderr.on("data", data => data.toString().split(/\r?\n/).forEach(prefix));
+  for (const stream of [child.stdout, child.stderr]) {
+    let pending = "";
+    stream.on("data", data => {
+      const lines = (pending + data.toString()).split(/\r?\n/);
+      pending = lines.pop();
+      for (const line of lines) {
+        const text = line && format(line);
+        if (text) console.log(text.split("\n").map(part => `[${label}] ${part}`).join("\n"));
+      }
+    });
+  }
   child.on("exit", code => {
     if (!shuttingDown) {
       console.error(`\n❌ ${label} stopped (exit code ${code}). Stopping everything.`);
@@ -158,7 +193,10 @@ function start(label, command, args, cwd, port) {
 
 // Run ts-node with node directly: npx would not pass on the stop signal.
 const TS_NODE = path.join(AUTH_DIR, "node_modules", "ts-node", "dist", "bin.js");
-start("auth", process.execPath, [TS_NODE, "src/index.ts"], AUTH_DIR, AUTH_PORT);
+// NODE_ENV=production only switches the auth logger to compact JSON lines
+// (formatted above). The cookie stays usable over http: COOKIE_SECURE=false.
+const AUTH_ENV = { NODE_ENV: "production" };
+start("auth", process.execPath, [TS_NODE, "src/index.ts"], AUTH_DIR, AUTH_PORT, AUTH_ENV, formatAuthLog);
 start("api ", process.execPath, ["server.js"], BACKEND_DIR, API_PORT);
 
 let shuttingDown = false;
