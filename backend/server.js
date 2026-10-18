@@ -49,6 +49,11 @@ const OPENROUTER_API_KEY = requireEnv("OPENROUTER_API_KEY");
 // Access tokens are issued by the auth service; the secret must match.
 const JWT_ACCESS_SECRET = requireEnv("JWT_ACCESS_SECRET");
 
+// The auth service keeps every user's credit balance. The backend reaches
+// it directly (not through the reverse proxy) with this shared secret.
+const INTERNAL_API_SECRET = requireEnv("INTERNAL_API_SECRET");
+const AUTH_INTERNAL_URL = process.env.AUTH_INTERNAL_URL || "http://localhost:3000";
+
 // Fallback list used for both chat and summarization, tried in order.
 //
 // Users send unpublished inventions to these models, and disclosing an
@@ -91,6 +96,15 @@ const COMPARE_COUNT = 5;
 const MAX_CLAIM_LENGTH = 6000;
 
 const MAX_ASSIST_INSTRUCTION_LENGTH = 1000;
+
+// Prices in credits. Each plan gets a daily allowance (auth service).
+// A Patenter AI reply (chat or an editor action) costs 1 credit per
+// 5 lines; a line longer than CHARS_PER_LINE counts as several, as it
+// wraps on screen. Searches and claim comparisons have a fixed price.
+const LINES_PER_CREDIT = 5;
+const CHARS_PER_LINE = 100;
+const SEARCH_COST = 5;
+const COMPARE_COST = 5;
 
 const EPO_BASE_URL = "https://ops.epo.org/3.2";
 
@@ -149,6 +163,109 @@ const apiLimiter = rateLimit({
   keyGenerator: (req, res) => req.userId || ipKeyGenerator(req.ip),
   message: { error: "Too many requests, please try again later" }
 });
+
+// ============================================
+// CREDITS (balances are kept by the auth service)
+// ============================================
+
+const authInternal = axios.create({
+  baseURL: AUTH_INTERNAL_URL,
+  timeout: 10000,
+  headers: { Authorization: `Bearer ${INTERNAL_API_SECRET}` }
+});
+
+class NotEnoughCreditsError extends Error {
+  constructor(credits) {
+    super("Not enough credits");
+    this.credits = credits;
+  }
+}
+
+// Resolves to { spent, day, credits }. With `partial`, spends whatever is
+// left when the user has fewer than `amount` credits instead of failing.
+async function spendCredits(userId, amount, { partial = false } = {}) {
+
+  try {
+
+    const response = await authInternal.post("/internal/credits/spend", { userId, amount, partial });
+    return response.data;
+
+  } catch (error) {
+
+    if (error.response?.status === 402) {
+      throw new NotEnoughCreditsError(error.response.data?.credits);
+    }
+
+    throw error;
+  }
+}
+
+// Gives back credits charged for an action that then failed. Resolves to
+// the new balance, or null if the refund didn't go through (logged only).
+async function refundCredits(userId, amount, day) {
+
+  try {
+
+    const response = await authInternal.post("/internal/credits/refund", { userId, amount, day });
+    return response.data.credits;
+
+  } catch (error) {
+
+    console.error(`⚠️ Credit refund failed for ${userId}`);
+    console.error(error.response?.data || error.message);
+    return null;
+  }
+}
+
+function notEnoughCreditsMessage(cost, credits) {
+
+  const left = credits?.remaining ?? 0;
+
+  return left > 0
+    ? `This costs ${cost} credits and you have ${left} left today. ` +
+      "Credits refill every day at 00:00 UTC, or upgrade your plan for more."
+    : "You have used all your credits for today. " +
+      "They refill at 00:00 UTC, or upgrade your plan for more.";
+}
+
+// Charges `amount` credits before an action. When that isn't possible it
+// sends the error response itself and resolves to null.
+async function chargeOrReject(req, res, amount) {
+
+  try {
+
+    return await spendCredits(req.userId, amount);
+
+  } catch (error) {
+
+    if (error instanceof NotEnoughCreditsError) {
+      res.status(402).json({
+        error: notEnoughCreditsMessage(amount, error.credits),
+        credits: error.credits
+      });
+      return null;
+    }
+
+    console.error("❌ Could not charge credits");
+    console.error(error.response?.data || error.message);
+
+    res.status(503).json({ error: "Your credits could not be checked. Please try again." });
+    return null;
+  }
+}
+
+// Lines as the user sees them: blank lines are free and long lines count
+// once per CHARS_PER_LINE characters.
+function countReplyLines(text) {
+  return text.split("\n").reduce(
+    (lines, line) => lines + Math.ceil(line.trim().length / CHARS_PER_LINE),
+    0
+  );
+}
+
+function replyCost(text) {
+  return Math.max(1, Math.ceil(countReplyLines(text) / LINES_PER_CREDIT));
+}
 
 // ============================================
 // EPO ACCESS TOKEN (cached until shortly before it expires)
@@ -725,7 +842,8 @@ async function searchPublications(token, cql) {
 // Body: { query: { keywords, applicant, inventor, cpc, publicationNumber,
 // dateFrom, dateTo } } or the older { company }. { lite: true } returns
 // only publication numbers (no EPO detail calls, no AI) — used by the
-// watchlist to look for new publications cheaply.
+// watchlist to look for new publications cheaply, so it costs no credits.
+// A full search costs SEARCH_COST, also when it comes from the cache.
 
 app.post("/search", requireAuth, apiLimiter, async (req, res) => {
 
@@ -759,6 +877,15 @@ app.post("/search", requireAuth, apiLimiter, async (req, res) => {
 
   const lite = body.lite === true;
 
+  let charge = null;
+
+  if (!lite) {
+    charge = await chargeOrReject(req, res, SEARCH_COST);
+    if (!charge) return;
+  }
+
+  const billing = charge ? { cost: SEARCH_COST, credits: charge.credits } : {};
+
   try {
 
     const cacheKey = `${lite ? "lite" : "full"}:${cql.toLowerCase()}`;
@@ -770,7 +897,8 @@ app.post("/search", requireAuth, apiLimiter, async (req, res) => {
         success: true,
         query: cql,
         total: cached.length,
-        patents: cached
+        patents: cached,
+        ...billing
       });
     }
 
@@ -807,13 +935,18 @@ app.post("/search", requireAuth, apiLimiter, async (req, res) => {
       success: true,
       query: cql,
       total: patents.length,
-      patents
+      patents,
+      ...billing
     });
 
   } catch (error) {
 
     console.error("❌ Search failed");
     console.error(error.response?.data || error.message);
+
+    if (charge) {
+      await refundCredits(req.userId, SEARCH_COST, charge.day);
+    }
 
     res.status(500).json({
       error: "Patent search failed"
@@ -884,6 +1017,40 @@ function readChatHistory(history) {
   });
 }
 
+// Gets an AI reply and charges for its length. One credit is taken up
+// front, so a user with none left is stopped before the AI runs, and the
+// rest once the reply is written. A reply that costs more than the user
+// has left uses up what is left rather than being withheld.
+async function sendPaidAIReply(req, res, messages) {
+
+  const charge = await chargeOrReject(req, res, 1);
+  if (!charge) return;
+
+  const result = await callOpenRouter(messages);
+
+  if (!result) {
+    await refundCredits(req.userId, 1, charge.day);
+    return res.status(502).json({ success: false, message: "All AI models failed." });
+  }
+
+  let cost = charge.spent;
+  let credits = charge.credits;
+  const rest = replyCost(result.message) - 1;
+
+  if (rest > 0) {
+    try {
+      const extra = await spendCredits(req.userId, rest, { partial: true });
+      cost += extra.spent;
+      credits = extra.credits;
+    } catch (error) {
+      console.error("⚠️ Could not charge the rest of an AI reply");
+      console.error(error.response?.data || error.message);
+    }
+  }
+
+  res.json({ success: true, model: result.model, message: result.message, cost, credits });
+}
+
 app.post("/chat", requireAuth, apiLimiter, async (req, res) => {
 
   const { message, history } = req.body || {};
@@ -904,24 +1071,11 @@ app.post("/chat", requireAuth, apiLimiter, async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
-  const result = await callOpenRouter([
+  await sendPaidAIReply(req, res, [
     { role: "system", content: CHAT_SYSTEM_PROMPT },
     ...earlier,
     { role: "user", content: message }
   ]);
-
-  if (!result) {
-    return res.status(502).json({
-      success: false,
-      message: "All AI models failed."
-    });
-  }
-
-  res.json({
-    success: true,
-    model: result.model,
-    message: result.message
-  });
 });
 
 // ============================================
@@ -999,16 +1153,10 @@ app.post("/assist", requireAuth, apiLimiter, async (req, res) => {
     (extra ? `\n\nAdditional instructions: ${extra}` : "") +
     `\n\nText:\n${text}`;
 
-  const result = await callOpenRouter([
+  await sendPaidAIReply(req, res, [
     { role: "system", content: ASSIST_SYSTEM_PROMPT },
     { role: "user", content: prompt }
   ]);
-
-  if (!result) {
-    return res.status(502).json({ success: false, message: "All AI models failed." });
-  }
-
-  res.json({ success: true, model: result.model, message: result.message });
 });
 
 // ============================================
@@ -1084,6 +1232,11 @@ app.post("/compare", requireAuth, apiLimiter, async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
+  const charge = await chargeOrReject(req, res, COMPARE_COST);
+  if (!charge) return;
+
+  const refund = () => refundCredits(req.userId, COMPARE_COST, charge.day);
+
   try {
 
     let terms = keywords
@@ -1091,6 +1244,7 @@ app.post("/compare", requireAuth, apiLimiter, async (req, res) => {
       : await suggestSearchTerms(claim);
 
     if (terms.length === 0) {
+      await refund();
       return res.status(502).json({
         error: "Could not work out search terms. Please enter some keywords."
       });
@@ -1119,7 +1273,9 @@ app.post("/compare", requireAuth, apiLimiter, async (req, res) => {
         query: cql,
         keywords: words,
         references: [],
-        analysis: "No references were found for these search terms. Try other keywords."
+        analysis: "No references were found for these search terms. Try other keywords.",
+        cost: COMPARE_COST,
+        credits: charge.credits
       });
     }
 
@@ -1140,19 +1296,35 @@ app.post("/compare", requireAuth, apiLimiter, async (req, res) => {
       { role: "user", content: buildComparePrompt(claim, references) }
     ]);
 
+    // No analysis, no charge; the references are still shown.
+    let cost = COMPARE_COST;
+    let credits = charge.credits;
+
+    if (!result) {
+      const refunded = await refund();
+      if (refunded) {
+        cost = 0;
+        credits = refunded;
+      }
+    }
+
     res.json({
       success: true,
       query: cql,
       keywords: words,
       model: result?.model,
       references,
-      analysis: result ? result.message : "Analysis unavailable — all AI models failed."
+      analysis: result ? result.message : "Analysis unavailable — all AI models failed.",
+      cost,
+      credits
     });
 
   } catch (error) {
 
     console.error("❌ Comparison failed");
     console.error(error.response?.data || error.message);
+
+    await refund();
 
     res.status(500).json({ error: "Prior-art comparison failed" });
   }
@@ -1186,4 +1358,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, buildEspacenetLink, buildSearchQuery, flattenXmlText, mapWithConcurrency };
+module.exports = { app, buildEspacenetLink, buildSearchQuery, flattenXmlText, mapWithConcurrency, replyCost };

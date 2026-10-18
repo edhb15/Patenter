@@ -5,6 +5,7 @@ import { logger } from "./config/logger";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
 import authRouter from "./routes/auth";
+import internalRouter from "./routes/internal";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -41,6 +42,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/internal", internalRouter);
 
 // error handler must be last
 app.use(errorHandler);

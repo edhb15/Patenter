@@ -122,6 +122,32 @@ header{
   font-size:14px;
 }
 
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.credits-pill{
+  padding:6px 14px;
+  border-radius:30px;
+  background:rgba(255,255,255,0.15);
+  color:#ffffff;
+  font-size:14px;
+  font-weight:700;
+  text-decoration:none;
+  white-space:nowrap;
+}
+
+.credits-pill:hover{
+  background:rgba(255,255,255,0.25);
+}
+
+.credits-pill.credits-empty{
+  background:#FEE2E2;
+  color:#B91C1C;
+}
+
 /* CHAT AREA */
 
 #chat{
@@ -344,7 +370,10 @@ button:hover{
 
 <header>
   <h1 onclick="home()" id="patent">Patenter AI</h1>
-  <p id="patent_atourney">Patent Creator Assistant</p>
+  <div class="header-right">
+    <p id="patent_atourney">Patent Creator Assistant</p>
+    <a class="credits-pill" href="../account/index.html" data-credits hidden></a>
+  </div>
 </header>
 
 <div id="chat"></div>
@@ -374,11 +403,13 @@ button:hover{
         crossorigin="anonymous"></script>
 
 <script src="../../shared/auth-client.js"></script>
+<script src="../../shared/credits.js"></script>
 
 <script>
 // The OpenRouter key lives on the backend (backend/server.js /chat);
 // this page only sends the signed-in user's access token.
 PatenterAuth.requireSignIn();
+PatenterCredits.refresh();
 const chat = document.getElementById("chat");
 let lastAIHTML = "";
 let lastAIMarkdown = "";
@@ -483,10 +514,20 @@ try {
 
   const data = await response.json();
 
+  if (response.status === 402) {
+    PatenterCredits.show(data.credits);
+    return {
+      success: false,
+      message: data.error + "\n\n[See your plan and credits](../account/index.html)"
+    };
+  }
+
   if (response.ok && data.success) {
+    PatenterCredits.show(data.credits);
     return {
       success: true,
       model: data.model,
+      cost: data.cost,
       message: data.message
     };
   }
@@ -633,9 +674,11 @@ clearInterval(dotsInterval);
 loading.remove();
 if(result.success){
 
+  const cost = result.cost === 1 ? "1 credit" : `${result.cost} credits`;
+
   addMessage(
     "# Using Model\n" +
-    result.model +
+    result.model + " · " + cost +
     "\n\n" +
     result.message,
     "bot"

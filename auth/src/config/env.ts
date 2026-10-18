@@ -22,6 +22,13 @@ if (isProduction && accessSecret.length < 32) {
   throw new Error("JWT_ACCESS_SECRET must be at least 32 characters in production");
 }
 
+// Lets the backend spend users' credits (see routes/internal.ts).
+const internalApiSecret = requireEnv("INTERNAL_API_SECRET");
+
+if (isProduction && internalApiSecret.length < 32) {
+  throw new Error("INTERNAL_API_SECRET must be at least 32 characters in production");
+}
+
 export const env = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv,
@@ -51,4 +58,6 @@ export const env = {
     issuer: "patenter-auth",
     audience: "patenter",
   },
+
+  internalApiSecret,
 };

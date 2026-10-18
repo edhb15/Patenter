@@ -204,6 +204,19 @@
       color: #0D3B66;
     }
 
+    .credits {
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .pricing-note {
+      max-width: 760px;
+      margin: 30px auto 0;
+      text-align: center;
+      font-size: 0.95em;
+      color: #555;
+    }
+
     .btn-secondary {
       background-color: transparent;
       border: 2px solid #0D3B66;
@@ -297,36 +310,31 @@
     <h2 style="text-align:center; margin-bottom:40px;">Pricing Plans</h2>
     <div class="pricing">
       <div class="pricing-card">
-        <h3>Basic</h3>
-        <div class="price">$5/month</div>
-        <p>Ideal for individual inventors and small projects.</p>
-        <button onclick="pricing()" class="btn-secondary">Choose Basic</button>
-      </div>
-      <div class="pricing-card">
-        <h3>Basic+</h3>
-        <div class="price">$10/month</div>
-        <p>For inventors with several ongoing projects.</p>
-        <button onclick="pricing()" class="btn-secondary">Choose Basic+</button>
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <p class="credits">100 credits a day</p>
+        <p>Try Patenter AI, patent search and the editor.</p>
+        <button onclick="pricing()" class="btn-secondary">Start for free</button>
       </div>
       <div class="pricing-card" style="border: 2px solid #00B4D8;">
         <h3>Pro</h3>
-        <div class="price">$20/month</div>
-        <p>Advanced features for small companies.</p>
+        <div class="price">$10/month</div>
+        <p class="credits">500 credits a day</p>
+        <p>For inventors and attorneys drafting and searching every day.</p>
         <button onclick="pricing()" class="btn-secondary">Choose Pro</button>
       </div>
       <div class="pricing-card">
-        <h3>Pro+</h3>
-        <div class="price">$25/month</div>
-        <p>Best for medium-sized companies.</p>
-        <button onclick="pricing()" class="btn-secondary">Choose Pro+</button>
-      </div>
-      <div class="pricing-card">
-        <h3>Enterprise</h3>
-        <div class="price">Contact Us</div>
-        <p>Customized solutions for large organizations.</p>
-        <button class="btn-secondary">Contact Sales</button>
+        <h3>Max</h3>
+        <div class="price">$20/month</div>
+        <p class="credits">1,000 credits a day</p>
+        <p>For heavy use across many applications.</p>
+        <button onclick="pricing()" class="btn-secondary">Choose Max</button>
       </div>
     </div>
+    <p class="pricing-note">
+      A Patenter AI answer costs 1 credit per 5 lines. A patent search or a
+      claim comparison costs 5 credits. Credits refill every day.
+    </p>
   </section>
 
   <!-- Footer -->

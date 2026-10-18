@@ -128,6 +128,20 @@
     return result;
   }
 
+  // The signed-in user's account: { id, email, plan, credits }, or null.
+  async function getAccount() {
+    const token = await getAccessToken();
+    if (!token) return null;
+    const result = await request(AUTH_URL + "/auth/me", { token });
+    return result.ok ? result.data : null;
+  }
+
+  // Every plan and its daily credits; works without signing in.
+  async function getPlans() {
+    const result = await request(AUTH_URL + "/auth/plans");
+    return result.ok && result.data ? result.data.plans : null;
+  }
+
   // Only same-site paths are allowed as a post-login destination, so the
   // login page can't be used to bounce users to another website.
   function safeNextPath(next) {
@@ -159,6 +173,8 @@
     register,
     logout,
     logoutAll,
+    getAccount,
+    getPlans,
     requireSignIn,
     goToLogin,
     safeNextPath
