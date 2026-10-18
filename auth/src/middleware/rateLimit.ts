@@ -35,3 +35,13 @@ export const refreshLimiter = rateLimit({
   skip,
   message: { error: "Too many requests, please try again later" },
 });
+
+// Each call creates a Stripe checkout or portal session.
+export const billingLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, please try again later" },
+});

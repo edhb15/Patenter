@@ -1,10 +1,13 @@
 import { Router, Response, CookieOptions } from "express";
 import { authService } from "../services/authService";
+import { creditService } from "../services/creditService";
+import { billingService } from "../services/billingService";
 import { AppError } from "../errors/AppError";
 import { authenticate } from "../middleware/auth";
 import { registerSchema, loginSchema } from "../schemas/auth";
 import { loginLimiter, registerLimiter, refreshLimiter } from "../middleware/rateLimit";
 import { env } from "../config/env";
+import { PLAN_IDS, planToApi } from "../credits/plans";
 
 const router = Router();
 
@@ -37,16 +40,33 @@ router.post("/register", registerLimiter, async (req, res) => {
   return res.status(201).json(user);
 });
 
-router.get("/me", authenticate, (req, res) => {
+router.get("/me", authenticate, async (req, res) => {
   const user = req.user;
 
   if (!user) {
     throw new AppError("Unauthorized", 401);
   }
 
+  const [{ plan, credits }, subscription] = await Promise.all([
+    creditService.getAccount(user.id),
+    billingService.getSubscription(user.id),
+  ]);
+
   return res.json({
     id: user.id,
     email: user.email,
+    plan,
+    credits,
+    subscription,
+  });
+});
+
+// Public, so the pricing can be shown before signing in.
+router.get("/plans", (req, res) => {
+  return res.json({
+    plans: PLAN_IDS.map(planToApi),
+    // False until Stripe is configured; plans then change by hand only.
+    billingEnabled: billingService.isEnabled(),
   });
 });
 

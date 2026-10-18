@@ -49,6 +49,40 @@ calendar (.ics).
 > Patenter AI can make mistakes and does not give legal advice. Drafts should
 > be reviewed by a patent attorney before filing.
 
+## Plans and credits
+
+Patenter AI, patent searches and claim comparisons are paid for with
+credits. Every plan gives a new allowance each day; unused credits don't
+carry over, and the day turns over at 00:00 UTC.
+
+| Plan | Price       | Credits a day |
+|------|-------------|---------------|
+| Free | $0          | 100           |
+| Pro  | $10 / month | 500           |
+| Max  | $20 / month | 1000          |
+
+| Action | Cost |
+|--------|------|
+| Patenter AI reply (chat or an editor AI action) | 1 credit per 5 lines of the reply, at least 1 |
+| Patent search (with AI summaries) | 5 credits |
+| Compare a claim | 5 credits |
+| Watchlist check, claims check, numbering, deadlines | free |
+
+A line is up to 100 characters (a longer line counts as several, as it
+wraps on screen) and blank lines are free. A reply that costs more than the
+credits left uses up what is left. When an action fails on Patenter's side,
+its credits are given back. Users see their balance in the app and on
+**Plan & credits** (`/app/account/`).
+
+Paid plans are sold through Stripe: **Upgrade** opens Stripe Checkout, and
+subscribers change plan, cancel or update their card in Stripe's customer
+portal. Stripe webhooks keep each account's plan in step with its
+subscription. Setup, going live and day-to-day running are described in
+[deploy/README.md](deploy/README.md).
+
+Plan allowances and prices are in `auth/src/credits/plans.ts`; what each
+action costs is at the top of `backend/server.js`.
+
 ## Architecture
 
 Everything is served from a single domain:
@@ -62,6 +96,11 @@ Everything is served from a single domain:
 [Caddy](https://caddyserver.com) sits in front of the services, serves the
 website, routes `/auth` and `/api`, and obtains HTTPS certificates
 automatically (`deploy/Caddyfile`).
+
+The auth service also keeps each account's plan, credit balance and Stripe
+subscription (Stripe calls it at `/auth/billing/webhook`). The API charges
+credits through the auth service's `/internal/credits/*` routes, which Caddy
+never forwards and which require a shared `INTERNAL_API_SECRET`.
 
 **Security.** Sign-in uses short-lived access tokens kept in memory plus a
 rotating refresh token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie.

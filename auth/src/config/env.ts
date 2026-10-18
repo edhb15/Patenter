@@ -22,6 +22,59 @@ if (isProduction && accessSecret.length < 32) {
   throw new Error("JWT_ACCESS_SECRET must be at least 32 characters in production");
 }
 
+// Lets the backend spend users' credits (see routes/internal.ts).
+const internalApiSecret = requireEnv("INTERNAL_API_SECRET");
+
+if (isProduction && internalApiSecret.length < 32) {
+  throw new Error("INTERNAL_API_SECRET must be at least 32 characters in production");
+}
+
+// A comma-separated list, e.g. "price_new,price_old". Checkout uses the
+// first; all of them count, so subscribers on an older price keep their plan.
+function priceList(name: string) {
+  const ids = requireEnv(name)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  if (ids.length === 0) {
+    throw new Error(`${name} must list at least one Stripe price ID`);
+  }
+
+  return ids;
+}
+
+// Stripe billing is optional. Without STRIPE_SECRET_KEY, plans are only
+// changed with the set-plan script; with it, the rest must be set too.
+function readBilling() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!secretKey) {
+    return null;
+  }
+
+  const publicUrl = requireEnv("PUBLIC_URL").replace(/\/+$/, "");
+
+  if (isProduction && !publicUrl.startsWith("https://")) {
+    throw new Error("PUBLIC_URL must start with https:// in production");
+  }
+
+  return {
+    secretKey,
+    webhookSecret: requireEnv("STRIPE_WEBHOOK_SECRET"),
+    prices: {
+      PRO: priceList("STRIPE_PRICE_PRO"),
+      MAX: priceList("STRIPE_PRICE_MAX"),
+    },
+    // From the setup script; Stripe's default portal settings otherwise.
+    portalConfiguration: process.env.STRIPE_PORTAL_CONFIGURATION || undefined,
+    // Needs Stripe Tax to be set up in the Stripe dashboard first.
+    automaticTax: process.env.STRIPE_AUTOMATIC_TAX === "true",
+    // Where Stripe sends people back to after checkout.
+    publicUrl,
+  };
+}
+
 export const env = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv,
@@ -51,4 +104,8 @@ export const env = {
     issuer: "patenter-auth",
     audience: "patenter",
   },
+
+  internalApiSecret,
+
+  billing: readBilling(),
 };

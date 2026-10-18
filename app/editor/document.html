@@ -138,6 +138,25 @@ button {
     white-space: nowrap;
 }
 
+.credits-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+}
+
+.credits-link:hover {
+    background: #f2f2f2;
+    color: var(--text);
+}
+
+.credits-link.credits-empty {
+    color: #b91c1c;
+}
+
 .top-spacer {
     flex: 1;
 }
@@ -1216,7 +1235,8 @@ body.fullscreen .editor-area {
         padding: 0 8px;
     }
 
-    .save-status {
+    .save-status,
+    .credits-link {
         display: none;
     }
 
@@ -1262,6 +1282,14 @@ body.fullscreen .editor-area {
     </span>
 
     <div class="top-spacer"></div>
+
+    <a
+        class="credits-link"
+        href="../account/index.html"
+        title="Plan and credits"
+        data-credits
+        hidden
+    ></a>
 
     <button
         class="top-button"
@@ -1956,6 +1984,8 @@ body.fullscreen .editor-area {
             <label for="assistInstruction">Extra instructions (optional)</label>
             <input id="assistInstruction" maxlength="1000" placeholder="e.g. keep the term 'fastening means'">
 
+            <p class="assist-status">Uses 1 credit per 5 lines of the result.</p>
+
             <div id="assistStatus" class="assist-status" aria-live="polite"></div>
 
             <label for="assistResult">Result (you can edit it before inserting)</label>
@@ -1998,12 +2028,14 @@ body.fullscreen .editor-area {
         integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL"
         crossorigin="anonymous"></script>
 <script src="../../shared/auth-client.js"></script>
+<script src="../../shared/credits.js"></script>
 <script src="../../shared/patenter-db.js"></script>
 <script src="../../shared/patent-tools.js"></script>
 
 <script>
 
 PatenterAuth.requireSignIn();
+PatenterCredits.refresh();
 
 /* =========================================================
    GLOBALS
@@ -4399,13 +4431,18 @@ async function runAssist() {
 
         const data = await response.json().catch(() => ({}));
 
+        // Paid replies, and refusals for lack of credits, carry the new balance.
+        PatenterCredits.show(data.credits);
+
         if (!response.ok || !data.success) {
             status.textContent = data.error || data.message || "The AI request failed.";
             return;
         }
 
+        const cost = data.cost === 1 ? "1 credit" : `${data.cost} credits`;
+
         document.getElementById("assistResult").value = data.message;
-        status.textContent = `Done (${data.model}). Check the result before using it.`;
+        status.textContent = `Done (${data.model}, ${cost}). Check the result before using it.`;
 
     } catch (error) {
 

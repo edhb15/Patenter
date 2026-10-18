@@ -64,6 +64,23 @@
       color: #00B4D8;
     }
 
+    nav a.credits-pill {
+      padding: 6px 14px;
+      border-radius: 30px;
+      background: rgba(255,255,255,0.15);
+      white-space: nowrap;
+    }
+
+    nav a.credits-pill:hover {
+      color: white;
+      background: rgba(255,255,255,0.25);
+    }
+
+    nav a.credits-pill.credits-empty {
+      background: #FEE2E2;
+      color: #B91C1C;
+    }
+
     /* HERO */
 
     .hero {
@@ -572,6 +589,7 @@
       <a href="/app/editor/document.html">Editor</a>
       <a href="/app/ai/index.html">AI</a>
       <a href="/app/deadlines/index.html">Deadlines</a>
+      <a class="credits-pill" href="/app/account/index.html" data-credits hidden></a>
     </nav>
   </header>
 
@@ -637,6 +655,8 @@
           </label>
         </div>
 
+        <p class="hint">A search costs 5 credits. Checking the watchlist is free.</p>
+
         <p class="form-error" id="searchError" role="alert"></p>
       </form>
     </div>
@@ -657,6 +677,7 @@
         </button>
 
         <p class="hint">
+          Costs 5 credits.
           Searches the EPO database for the closest documents and has Patenter AI
           compare them feature by feature with your claim. Only abstracts are
           compared, so treat the result as a starting point. Your claim is sent
@@ -742,9 +763,11 @@
           integrity="sha384-a7SzOxErzJ3ZpQz0zJ32d67dSitNzPcbfybc/ykU9KJhMgZkwqfSxlhhdJRS+XGL"
           crossorigin="anonymous"></script>
   <script src="../../shared/auth-client.js"></script>
+  <script src="../../shared/credits.js"></script>
   <script>
     // Patent search runs on backend/server.js and needs a signed-in user.
     PatenterAuth.requireSignIn();
+    PatenterCredits.refresh();
 
     // Everything from the backend (EPO data, AI summaries) is untrusted,
     // so it must be escaped before it goes into innerHTML.
@@ -783,7 +806,8 @@
         : value;
     }
 
-    // Returns { ok, status, data }; sends to sign-in on 401.
+    // Returns { ok, status, data }; sends to sign-in on 401. Paid calls
+    // answer with the new credit balance (also when there wasn't enough).
     async function postJSON(path, body) {
       const response = await PatenterAuth.apiFetch(path, {
         method: "POST",
@@ -797,6 +821,8 @@
 
       let data = {};
       try { data = await response.json(); } catch {}
+
+      PatenterCredits.show(data.credits);
 
       return { ok: response.ok, status: response.status, data };
     }

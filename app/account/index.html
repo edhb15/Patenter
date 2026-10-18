@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Limits where scripts load from and where data can be sent. The APIs are
+     served from the same origin as the pages (see deploy/Caddyfile). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan &amp; credits – Patenter</title>
+<link rel="icon" type="image/x-icon" href="../../images-and-other-branding/SmallSquareLogoJpg.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0D3B66;
+    --primary-dark: #0a2f52;
+    --accent: #00B4D8;
+    --accent-tint: #E6F7FB;
+    --light-bg: #F4F4F4;
+    --white: #FFFFFF;
+    --text-dark: #222222;
+    --text-light: #555555;
+    --border: #E5E7EB;
+    --danger: #B91C1C;
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --radius: 12px;
+    --pill: 30px;
+    --ease: 0.3s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    background: var(--light-bg);
+    color: var(--text-dark);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .brand-name { font-family: 'Montserrat', 'Open Sans', sans-serif; font-weight: 700; color: var(--primary); }
+  button { font-family: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 22px;
+    border-radius: var(--pill); border: 2px solid transparent;
+    font-weight: 700; font-size: 15px; text-decoration: none;
+    transition: all var(--ease);
+  }
+  .btn-primary { background: var(--primary); color: var(--white); border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+  .btn-secondary { background: transparent; color: var(--primary); border-color: var(--primary); }
+  .btn-secondary:hover { background: var(--primary); color: var(--white); }
+  .btn:disabled { cursor: default; opacity: 0.55; }
+  .btn:disabled:hover { background: transparent; color: var(--primary); }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    height: 72px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 40px;
+    background: var(--white); border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
+  .brand-name { font-size: 22px; }
+
+  /* ---------- Content ---------- */
+  main { max-width: 1000px; margin: 0 auto; padding: 40px 24px 64px; display: flex; flex-direction: column; gap: 28px; }
+  .page-head h1 { font-size: 32px; line-height: 1.2; }
+  .page-head p { margin-top: 6px; font-size: 15px; color: var(--text-light); }
+
+  .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-medium); padding: 28px; }
+  .card h2 { font-size: 18px; margin-bottom: 16px; }
+
+  .usage { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+  .usage-number { font-family: 'Montserrat', 'Open Sans', sans-serif; font-size: 44px; font-weight: 700; line-height: 1; color: var(--primary); }
+  .usage-number small { font-family: 'Open Sans', sans-serif; font-size: 16px; font-weight: 600; color: var(--text-light); }
+  .usage-label { font-size: 14px; color: var(--text-light); margin-bottom: 8px; }
+  .plan-badge {
+    display: inline-flex; align-items: center; height: 30px; padding: 0 14px;
+    border-radius: var(--pill); background: var(--accent-tint); color: var(--primary);
+    font-size: 14px; font-weight: 700;
+  }
+  .meter { height: 12px; margin-top: 20px; border-radius: 6px; background: var(--light-bg); overflow: hidden; }
+  .meter-fill { height: 100%; width: 0; border-radius: 6px; background: var(--accent); transition: width 0.6s ease; }
+  .meter-fill.empty { background: var(--danger); }
+  .refill { margin-top: 10px; font-size: 14px; color: var(--text-light); }
+
+  .subscription {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+    margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 15px;
+  }
+  .subscription.warn p { color: #92400E; font-weight: 600; }
+
+  .banner { padding: 16px 20px; border-radius: var(--radius); background: var(--accent-tint); color: var(--primary); font-size: 15px; font-weight: 600; }
+  .banner.warn { background: #FEF3C7; color: #92400E; }
+
+  .costs { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .costs td { padding: 12px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .costs tr:last-child td { border-bottom: none; }
+  .costs td:last-child { text-align: right; font-weight: 700; white-space: nowrap; padding-left: 16px; }
+  .costs .detail { display: block; font-size: 13px; color: var(--text-light); }
+  .note { margin-top: 14px; font-size: 13px; color: var(--text-light); }
+
+  .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .plan {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-medium);
+    border: 2px solid transparent; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .plan.current { border-color: var(--accent); }
+  .plan h3 { font-size: 20px; }
+  .plan-price { font-size: 28px; font-weight: 700; color: var(--primary); }
+  .plan-price small { font-size: 15px; font-weight: 600; color: var(--text-light); }
+  .plan-credits { font-weight: 700; }
+  .plan-detail { font-size: 14px; color: var(--text-light); flex: 1; }
+  .plan .btn { margin-top: 8px; }
+
+  .error { color: var(--danger); font-weight: 600; }
+
+  @media (max-width: 767px) {
+    .topbar { padding: 0 20px; }
+    .topbar .btn { padding: 0 14px; font-size: 14px; }
+    main { padding: 24px 16px 48px; }
+    .page-head h1 { font-size: 26px; }
+    .plans { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 420px) {
+    #docsLink { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+      <rect x="1" y="1" width="28" height="28" rx="8" fill="#0D3B66"/>
+      <path d="M11 21V9h5a4 4 0 0 1 0 8h-5" stroke="#00B4D8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="brand-name">Patenter</span>
+  </a>
+  <a class="btn btn-secondary" id="docsLink" href="../index.html">My documents</a>
+  <button class="btn btn-secondary" type="button" id="signOutBtn">Sign out</button>
+</header>
+
+<main>
+  <div class="page-head">
+    <h1>Plan &amp; credits</h1>
+    <p>Patenter AI, patent searches and claim comparisons use credits. Your plan gives you a new allowance every day.</p>
+  </div>
+
+  <div class="banner" id="banner" role="status" hidden></div>
+
+  <section class="card" aria-labelledby="todayTitle">
+    <h2 id="todayTitle">Today</h2>
+    <div id="usage"><p class="usage-label">Loading…</p></div>
+    <div class="subscription" id="subscription" hidden></div>
+  </section>
+
+  <section class="card" aria-labelledby="costsTitle">
+    <h2 id="costsTitle">What uses credits</h2>
+    <table class="costs">
+      <tr>
+        <td>Patenter AI reply
+          <span class="detail">Chat answers. A line is up to 100 characters; blank lines are free.</span></td>
+        <td>1 credit per 5 lines</td>
+      </tr>
+      <tr>
+        <td>Editor AI action
+          <span class="detail">Broaden, narrow, dependent claims, clarity, EP/US style, explain.</span></td>
+        <td>1 credit per 5 lines</td>
+      </tr>
+      <tr>
+        <td>Patent search
+          <span class="detail">Including AI summaries of the top results.</span></td>
+        <td>5 credits</td>
+      </tr>
+      <tr>
+        <td>Compare a claim
+          <span class="detail">Prior-art search plus a feature-by-feature AI comparison.</span></td>
+        <td>5 credits</td>
+      </tr>
+      <tr>
+        <td>Watchlist check, editor tools, deadline calculator</td>
+        <td>Free</td>
+      </tr>
+    </table>
+    <p class="note">If something fails on our side, the credits are given back. A reply that costs more than you have left uses up what is left.</p>
+  </section>
+
+  <section aria-labelledby="plansTitle">
+    <h2 id="plansTitle" style="font-size:22px;margin-bottom:16px">Plans</h2>
+    <div class="plans" id="plans"></div>
+    <p class="note" id="plansNote"></p>
+  </section>
+</main>
+
+<script src="../../shared/auth-client.js"></script>
+<script src="../../shared/credits.js"></script>
+<script>
+  PatenterAuth.requireSignIn();
+
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    await PatenterAuth.logout();
+    location.href = '../../login.html';
+  });
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const number = (n) => Number(n).toLocaleString('en-US');
+
+  function timeUntil(iso) {
+    const minutes = Math.max(0, Math.ceil((Date.parse(iso) - Date.now()) / 60000));
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h ? `${h} h ${m} min` : `${m} min`;
+  }
+
+  function renderUsage(account) {
+    const { plan, credits } = account;
+    const share = credits.dailyAllowance ? credits.remaining / credits.dailyAllowance : 0;
+    const at = new Date(credits.resetsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    $('usage').innerHTML = `
+      <div class="usage">
+        <div>
+          <p class="usage-label">Credits left today</p>
+          <div class="usage-number">${number(credits.remaining)} <small>of ${number(credits.dailyAllowance)}</small></div>
+        </div>
+        <span class="plan-badge">${esc(plan.name)} plan</span>
+      </div>
+      <div class="meter" role="meter" aria-label="Credits left today"
+           aria-valuemin="0" aria-valuemax="${credits.dailyAllowance}" aria-valuenow="${credits.remaining}">
+        <div class="meter-fill${credits.remaining === 0 ? ' empty' : ''}" id="meterFill"></div>
+      </div>
+      <p class="refill">Refills to ${number(credits.dailyAllowance)} in ${esc(timeUntil(credits.resetsAt))} (at ${esc(at)} your time).</p>`;
+
+    // Set after insertion so the bar animates from empty.
+    requestAnimationFrame(() => { $('meterFill').style.width = `${Math.round(share * 100)}%`; });
+  }
+
+  function formatDay(iso) {
+    return new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function showBanner(text, warn = false) {
+    $('banner').textContent = text;
+    $('banner').classList.toggle('warn', warn);
+    $('banner').hidden = !text;
+  }
+
+  function renderSubscription({ plan, subscription }) {
+    const el = $('subscription');
+    el.hidden = !subscription;
+    if (!subscription) return;
+
+    const failed = subscription.status === 'past_due';
+    const text = failed
+      ? `Your last payment didn't go through. Update your payment method to keep the ${plan.name} plan.`
+      : subscription.endsAt
+        ? `Your ${plan.name} plan is cancelled and ends on ${formatDay(subscription.endsAt)}. You'll be on Free after that.`
+        : subscription.renewsAt
+          ? `Your ${plan.name} plan renews on ${formatDay(subscription.renewsAt)}.`
+          : `You're subscribed to the ${plan.name} plan.`;
+
+    el.classList.toggle('warn', failed);
+    el.innerHTML = `
+      <p>${esc(text)}</p>
+      <button type="button" class="btn btn-secondary" data-action="portal">${failed ? 'Update payment method' : 'Manage subscription'}</button>`;
+  }
+
+  // Subscribers change plan (or cancel) in Stripe's portal; everyone else
+  // buys a paid plan through Stripe Checkout.
+  function planButton(plan, account, plans, billingEnabled) {
+    if (plan.id === account.plan.id) {
+      return '<button type="button" class="btn btn-secondary" disabled>Your plan</button>';
+    }
+    if (!billingEnabled) {
+      return '<button type="button" class="btn btn-secondary" disabled>Coming soon</button>';
+    }
+    if (account.subscription) {
+      return '<button type="button" class="btn btn-secondary" data-action="portal">Change plan</button>';
+    }
+    if (!plan.monthlyPriceUsd) {
+      return '';
+    }
+    const current = plans.find((p) => p.id === account.plan.id);
+    const verb = !current || plan.monthlyPriceUsd > current.monthlyPriceUsd ? 'Upgrade to' : 'Choose';
+    return `<button type="button" class="btn btn-primary" data-action="checkout" data-plan="${esc(plan.id)}">${verb} ${esc(plan.name)}</button>`;
+  }
+
+  function renderPlans(plans, account, billingEnabled) {
+    $('plans').innerHTML = plans.map((plan) => {
+      const price = plan.monthlyPriceUsd
+        ? `$${number(plan.monthlyPriceUsd)} <small>/ month</small>`
+        : '$0';
+      return `
+        <article class="plan${plan.id === account.plan.id ? ' current' : ''}">
+          <h3>${esc(plan.name)}</h3>
+          <div class="plan-price">${price}</div>
+          <div class="plan-credits">${number(plan.dailyCredits)} credits a day</div>
+          <p class="plan-detail">Up to ${number(plan.dailyCredits / 5)} searches or ${number(plan.dailyCredits * 5)} lines of AI answers a day.</p>
+          ${planButton(plan, account, plans, billingEnabled)}
+        </article>`;
+    }).join('');
+
+    $('plansNote').textContent = billingEnabled
+      ? 'Prices in US dollars, billed monthly by Stripe. Cancel any time; you keep your plan until the end of the month you paid for.'
+      : 'Online upgrades are coming soon.';
+  }
+
+  // Set while the browser is on its way to Stripe, so a refresh doesn't
+  // redraw the button that was clicked.
+  let leaving = false;
+
+  async function load() {
+    const [account, pricing] = await Promise.all([PatenterCredits.refresh(), PatenterAuth.getPlans()]);
+
+    if (!account) {
+      $('usage').innerHTML = '<p class="error">Your credits could not be loaded. Please reload the page.</p>';
+      return null;
+    }
+
+    if (!leaving) {
+      renderUsage(account);
+      renderSubscription(account);
+      renderPlans(pricing ? pricing.plans : [], account, !!(pricing && pricing.billingEnabled));
+    }
+    return account;
+  }
+
+  async function goToStripe(button, start) {
+    leaving = true;
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Opening Stripe…';
+
+    const result = await start();
+
+    if (result.ok && result.data && result.data.url) {
+      location.href = result.data.url;
+      return;
+    }
+    if (result.status === 401) {
+      PatenterAuth.goToLogin();
+      return;
+    }
+
+    leaving = false;
+    button.disabled = false;
+    button.textContent = label;
+    showBanner((result.data && result.data.error) || 'Stripe could not be opened. Please try again.', true);
+  }
+
+  document.querySelector('main').addEventListener('click', (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button || leaving) return;
+    if (button.dataset.action === 'checkout') goToStripe(button, () => PatenterAuth.startCheckout(button.dataset.plan));
+    if (button.dataset.action === 'portal') goToStripe(button, () => PatenterAuth.openBillingPortal());
+  });
+
+  // Stripe tells the server about a payment a moment after it sends the
+  // browser back here, so wait for the subscription to show up.
+  async function waitForSubscription() {
+    for (let i = 0; i < 15; i++) {
+      const account = await load();
+      if (account && account.subscription) {
+        showBanner(`Thank you! You're now on the ${account.plan.name} plan.`);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    showBanner('Your payment went through, but your plan has not switched yet. Please reload this page in a minute.', true);
+  }
+
+  (async () => {
+    const params = new URLSearchParams(location.search);
+    const checkout = params.get('checkout');
+    const upgrade = params.get('upgrade');
+    if (checkout || upgrade) history.replaceState(null, '', location.pathname);
+
+    if (checkout === 'success') {
+      showBanner('Thank you! Your payment went through. Switching your plan…');
+      await waitForSubscription();
+      return;
+    }
+    if (checkout === 'cancelled') showBanner('Checkout was cancelled. You have not been charged.');
+
+    await load();
+
+    // "Choose Pro" on the home page: go straight on to checkout.
+    const buy = upgrade && document.querySelector(`button[data-action="checkout"][data-plan="${CSS.escape(upgrade)}"]`);
+    if (buy) buy.click();
+  })();
+
+  // Keeps the countdown current, shows the new allowance after midnight
+  // UTC and picks up credits spent in other tabs.
+  setInterval(() => { if (!document.hidden) load(); }, 60000);
+  window.addEventListener('focus', load);
+  // Coming back from Stripe with the Back button restores this page as it
+  // was left, with the button still saying "Opening Stripe…".
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) { leaving = false; load(); }
+  });
+</script>
+</body>
+</html>

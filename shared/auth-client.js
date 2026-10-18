@@ -128,6 +128,33 @@
     return result;
   }
 
+  // The signed-in user's account: { id, email, plan, credits }, or null.
+  async function getAccount() {
+    const token = await getAccessToken();
+    if (!token) return null;
+    const result = await request(AUTH_URL + "/auth/me", { token });
+    return result.ok ? result.data : null;
+  }
+
+  // { plans, billingEnabled }: every plan and its daily credits, and
+  // whether they can be bought online. Works without signing in.
+  async function getPlans() {
+    const result = await request(AUTH_URL + "/auth/plans");
+    return result.ok ? result.data : null;
+  }
+
+  // Both resolve to { ok, status, data }; on success data.url is a Stripe
+  // page to send the browser to.
+  async function startCheckout(plan) {
+    const token = await getAccessToken();
+    return request(AUTH_URL + "/auth/billing/checkout", { method: "POST", body: { plan }, token });
+  }
+
+  async function openBillingPortal() {
+    const token = await getAccessToken();
+    return request(AUTH_URL + "/auth/billing/portal", { method: "POST", token });
+  }
+
   // Only same-site paths are allowed as a post-login destination, so the
   // login page can't be used to bounce users to another website.
   function safeNextPath(next) {
@@ -159,6 +186,10 @@
     register,
     logout,
     logoutAll,
+    getAccount,
+    getPlans,
+    startCheckout,
+    openBillingPortal,
     requireSignIn,
     goToLogin,
     safeNextPath
