@@ -24,6 +24,15 @@ model User {
   // zero, so the allowance refills every day without a scheduled job.
   creditsUsed  Int       @default(0)
   creditsDay   DateTime? @db.Date
+  // Stripe billing. Webhooks keep these and the plan in step with the
+  // subscription (src/services/billingService.ts).
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  subscriptionStatus    String?
+  // End of the paid period: when it renews, or when a cancelled
+  // subscription runs out (subscriptionEndsAt is then set too).
+  subscriptionPeriodEnd DateTime?
+  subscriptionEndsAt    DateTime?
   sessions     Session[]
 }
 

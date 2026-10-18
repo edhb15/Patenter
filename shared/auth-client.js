@@ -136,10 +136,23 @@
     return result.ok ? result.data : null;
   }
 
-  // Every plan and its daily credits; works without signing in.
+  // { plans, billingEnabled }: every plan and its daily credits, and
+  // whether they can be bought online. Works without signing in.
   async function getPlans() {
     const result = await request(AUTH_URL + "/auth/plans");
-    return result.ok && result.data ? result.data.plans : null;
+    return result.ok ? result.data : null;
+  }
+
+  // Both resolve to { ok, status, data }; on success data.url is a Stripe
+  // page to send the browser to.
+  async function startCheckout(plan) {
+    const token = await getAccessToken();
+    return request(AUTH_URL + "/auth/billing/checkout", { method: "POST", body: { plan }, token });
+  }
+
+  async function openBillingPortal() {
+    const token = await getAccessToken();
+    return request(AUTH_URL + "/auth/billing/portal", { method: "POST", token });
   }
 
   // Only same-site paths are allowed as a post-login destination, so the
@@ -175,6 +188,8 @@
     logoutAll,
     getAccount,
     getPlans,
+    startCheckout,
+    openBillingPortal,
     requireSignIn,
     goToLogin,
     safeNextPath

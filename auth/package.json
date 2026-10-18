@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "seed": "ts-node prisma/seed.ts",
     "set-plan": "ts-node src/scripts/setPlan.ts",
-    "test": "node --test --require ts-node/register test/*.test.ts",
+    "stripe:setup": "ts-node src/scripts/stripeSetup.ts",
+    "test": "node --test --test-concurrency=1 --require ts-node/register test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "migrate": "prisma migrate deploy"
   },
@@ -30,6 +31,7 @@
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "prisma": "^6.19.3",
+    "stripe": "^23.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

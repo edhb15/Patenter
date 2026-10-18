@@ -1,6 +1,7 @@
 import { Router, Response, CookieOptions } from "express";
 import { authService } from "../services/authService";
 import { creditService } from "../services/creditService";
+import { billingService } from "../services/billingService";
 import { AppError } from "../errors/AppError";
 import { authenticate } from "../middleware/auth";
 import { registerSchema, loginSchema } from "../schemas/auth";
@@ -46,13 +47,17 @@ router.get("/me", authenticate, async (req, res) => {
     throw new AppError("Unauthorized", 401);
   }
 
-  const { plan, credits } = await creditService.getAccount(user.id);
+  const [{ plan, credits }, subscription] = await Promise.all([
+    creditService.getAccount(user.id),
+    billingService.getSubscription(user.id),
+  ]);
 
   return res.json({
     id: user.id,
     email: user.email,
     plan,
     credits,
+    subscription,
   });
 });
 
@@ -60,6 +65,8 @@ router.get("/me", authenticate, async (req, res) => {
 router.get("/plans", (req, res) => {
   return res.json({
     plans: PLAN_IDS.map(planToApi),
+    // False until Stripe is configured; plans then change by hand only.
+    billingEnabled: billingService.isEnabled(),
   });
 });
 

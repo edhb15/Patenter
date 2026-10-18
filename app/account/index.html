@@ -51,6 +51,8 @@
     font-weight: 700; font-size: 15px; text-decoration: none;
     transition: all var(--ease);
   }
+  .btn-primary { background: var(--primary); color: var(--white); border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
   .btn-secondary { background: transparent; color: var(--primary); border-color: var(--primary); }
   .btn-secondary:hover { background: var(--primary); color: var(--white); }
   .btn:disabled { cursor: default; opacity: 0.55; }
@@ -87,6 +89,15 @@
   .meter-fill { height: 100%; width: 0; border-radius: 6px; background: var(--accent); transition: width 0.6s ease; }
   .meter-fill.empty { background: var(--danger); }
   .refill { margin-top: 10px; font-size: 14px; color: var(--text-light); }
+
+  .subscription {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+    margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 15px;
+  }
+  .subscription.warn p { color: #92400E; font-weight: 600; }
+
+  .banner { padding: 16px 20px; border-radius: var(--radius); background: var(--accent-tint); color: var(--primary); font-size: 15px; font-weight: 600; }
+  .banner.warn { background: #FEF3C7; color: #92400E; }
 
   .costs { width: 100%; border-collapse: collapse; font-size: 15px; }
   .costs td { padding: 12px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -146,9 +157,12 @@
     <p>Patenter AI, patent searches and claim comparisons use credits. Your plan gives you a new allowance every day.</p>
   </div>
 
+  <div class="banner" id="banner" role="status" hidden></div>
+
   <section class="card" aria-labelledby="todayTitle">
     <h2 id="todayTitle">Today</h2>
     <div id="usage"><p class="usage-label">Loading…</p></div>
+    <div class="subscription" id="subscription" hidden></div>
   </section>
 
   <section class="card" aria-labelledby="costsTitle">
@@ -185,7 +199,7 @@
   <section aria-labelledby="plansTitle">
     <h2 id="plansTitle" style="font-size:22px;margin-bottom:16px">Plans</h2>
     <div class="plans" id="plans"></div>
-    <p class="note">Online upgrades are coming soon.</p>
+    <p class="note" id="plansNote"></p>
   </section>
 </main>
 
@@ -233,40 +247,169 @@
     requestAnimationFrame(() => { $('meterFill').style.width = `${Math.round(share * 100)}%`; });
   }
 
-  function renderPlans(plans, currentId) {
+  function formatDay(iso) {
+    return new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function showBanner(text, warn = false) {
+    $('banner').textContent = text;
+    $('banner').classList.toggle('warn', warn);
+    $('banner').hidden = !text;
+  }
+
+  function renderSubscription({ plan, subscription }) {
+    const el = $('subscription');
+    el.hidden = !subscription;
+    if (!subscription) return;
+
+    const failed = subscription.status === 'past_due';
+    const text = failed
+      ? `Your last payment didn't go through. Update your payment method to keep the ${plan.name} plan.`
+      : subscription.endsAt
+        ? `Your ${plan.name} plan is cancelled and ends on ${formatDay(subscription.endsAt)}. You'll be on Free after that.`
+        : subscription.renewsAt
+          ? `Your ${plan.name} plan renews on ${formatDay(subscription.renewsAt)}.`
+          : `You're subscribed to the ${plan.name} plan.`;
+
+    el.classList.toggle('warn', failed);
+    el.innerHTML = `
+      <p>${esc(text)}</p>
+      <button type="button" class="btn btn-secondary" data-action="portal">${failed ? 'Update payment method' : 'Manage subscription'}</button>`;
+  }
+
+  // Subscribers change plan (or cancel) in Stripe's portal; everyone else
+  // buys a paid plan through Stripe Checkout.
+  function planButton(plan, account, plans, billingEnabled) {
+    if (plan.id === account.plan.id) {
+      return '<button type="button" class="btn btn-secondary" disabled>Your plan</button>';
+    }
+    if (!billingEnabled) {
+      return '<button type="button" class="btn btn-secondary" disabled>Coming soon</button>';
+    }
+    if (account.subscription) {
+      return '<button type="button" class="btn btn-secondary" data-action="portal">Change plan</button>';
+    }
+    if (!plan.monthlyPriceUsd) {
+      return '';
+    }
+    const current = plans.find((p) => p.id === account.plan.id);
+    const verb = !current || plan.monthlyPriceUsd > current.monthlyPriceUsd ? 'Upgrade to' : 'Choose';
+    return `<button type="button" class="btn btn-primary" data-action="checkout" data-plan="${esc(plan.id)}">${verb} ${esc(plan.name)}</button>`;
+  }
+
+  function renderPlans(plans, account, billingEnabled) {
     $('plans').innerHTML = plans.map((plan) => {
-      const current = plan.id === currentId;
       const price = plan.monthlyPriceUsd
         ? `$${number(plan.monthlyPriceUsd)} <small>/ month</small>`
         : '$0';
       return `
-        <article class="plan${current ? ' current' : ''}">
+        <article class="plan${plan.id === account.plan.id ? ' current' : ''}">
           <h3>${esc(plan.name)}</h3>
           <div class="plan-price">${price}</div>
           <div class="plan-credits">${number(plan.dailyCredits)} credits a day</div>
           <p class="plan-detail">Up to ${number(plan.dailyCredits / 5)} searches or ${number(plan.dailyCredits * 5)} lines of AI answers a day.</p>
-          <button type="button" class="btn btn-secondary" disabled>${current ? 'Your plan' : 'Coming soon'}</button>
+          ${planButton(plan, account, plans, billingEnabled)}
         </article>`;
     }).join('');
+
+    $('plansNote').textContent = billingEnabled
+      ? 'Prices in US dollars, billed monthly by Stripe. Cancel any time; you keep your plan until the end of the month you paid for.'
+      : 'Online upgrades are coming soon.';
   }
 
+  // Set while the browser is on its way to Stripe, so a refresh doesn't
+  // redraw the button that was clicked.
+  let leaving = false;
+
   async function load() {
-    const [account, plans] = await Promise.all([PatenterCredits.refresh(), PatenterAuth.getPlans()]);
+    const [account, pricing] = await Promise.all([PatenterCredits.refresh(), PatenterAuth.getPlans()]);
 
     if (!account) {
       $('usage').innerHTML = '<p class="error">Your credits could not be loaded. Please reload the page.</p>';
+      return null;
+    }
+
+    if (!leaving) {
+      renderUsage(account);
+      renderSubscription(account);
+      renderPlans(pricing ? pricing.plans : [], account, !!(pricing && pricing.billingEnabled));
+    }
+    return account;
+  }
+
+  async function goToStripe(button, start) {
+    leaving = true;
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Opening Stripe…';
+
+    const result = await start();
+
+    if (result.ok && result.data && result.data.url) {
+      location.href = result.data.url;
+      return;
+    }
+    if (result.status === 401) {
+      PatenterAuth.goToLogin();
       return;
     }
 
-    renderUsage(account);
-    renderPlans(plans || [], account.plan.id);
+    leaving = false;
+    button.disabled = false;
+    button.textContent = label;
+    showBanner((result.data && result.data.error) || 'Stripe could not be opened. Please try again.', true);
   }
 
-  load();
+  document.querySelector('main').addEventListener('click', (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button || leaving) return;
+    if (button.dataset.action === 'checkout') goToStripe(button, () => PatenterAuth.startCheckout(button.dataset.plan));
+    if (button.dataset.action === 'portal') goToStripe(button, () => PatenterAuth.openBillingPortal());
+  });
+
+  // Stripe tells the server about a payment a moment after it sends the
+  // browser back here, so wait for the subscription to show up.
+  async function waitForSubscription() {
+    for (let i = 0; i < 15; i++) {
+      const account = await load();
+      if (account && account.subscription) {
+        showBanner(`Thank you! You're now on the ${account.plan.name} plan.`);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    showBanner('Your payment went through, but your plan has not switched yet. Please reload this page in a minute.', true);
+  }
+
+  (async () => {
+    const params = new URLSearchParams(location.search);
+    const checkout = params.get('checkout');
+    const upgrade = params.get('upgrade');
+    if (checkout || upgrade) history.replaceState(null, '', location.pathname);
+
+    if (checkout === 'success') {
+      showBanner('Thank you! Your payment went through. Switching your plan…');
+      await waitForSubscription();
+      return;
+    }
+    if (checkout === 'cancelled') showBanner('Checkout was cancelled. You have not been charged.');
+
+    await load();
+
+    // "Choose Pro" on the home page: go straight on to checkout.
+    const buy = upgrade && document.querySelector(`button[data-action="checkout"][data-plan="${CSS.escape(upgrade)}"]`);
+    if (buy) buy.click();
+  })();
+
   // Keeps the countdown current, shows the new allowance after midnight
   // UTC and picks up credits spent in other tabs.
   setInterval(() => { if (!document.hidden) load(); }, 60000);
   window.addEventListener('focus', load);
+  // Coming back from Stripe with the Back button restores this page as it
+  // was left, with the button still saying "Opening Stripe…".
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) { leaving = false; load(); }
+  });
 </script>
 </body>
 </html>

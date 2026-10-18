@@ -314,21 +314,21 @@
         <div class="price">$0</div>
         <p class="credits">100 credits a day</p>
         <p>Try Patenter AI, patent search and the editor.</p>
-        <button onclick="pricing()" class="btn-secondary">Start for free</button>
+        <button onclick="choosePlan('free')" class="btn-secondary">Start for free</button>
       </div>
       <div class="pricing-card" style="border: 2px solid #00B4D8;">
         <h3>Pro</h3>
         <div class="price">$10/month</div>
         <p class="credits">500 credits a day</p>
         <p>For inventors and attorneys drafting and searching every day.</p>
-        <button onclick="pricing()" class="btn-secondary">Choose Pro</button>
+        <button onclick="choosePlan('pro')" class="btn-secondary">Choose Pro</button>
       </div>
       <div class="pricing-card">
         <h3>Max</h3>
         <div class="price">$20/month</div>
         <p class="credits">1,000 credits a day</p>
         <p>For heavy use across many applications.</p>
-        <button onclick="pricing()" class="btn-secondary">Choose Max</button>
+        <button onclick="choosePlan('max')" class="btn-secondary">Choose Max</button>
       </div>
     </div>
     <p class="pricing-note">
@@ -354,8 +354,11 @@
     function login() {
       window.location.href = "login.html";
     }
-    function pricing() {
-      login();
+    // After signing in (or up), a paid plan goes straight on to checkout.
+    function choosePlan(plan) {
+      if (plan === "free") return login();
+      const next = "/app/account/index.html?upgrade=" + plan;
+      window.location.href = "login.html?next=" + encodeURIComponent(next);
     }
     function openAI() {
       window.location.href = "login.html?next=" + encodeURIComponent("/app/ai/index.html");

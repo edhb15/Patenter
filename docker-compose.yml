@@ -28,6 +28,15 @@ services:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?set INTERNAL_API_SECRET}
       TRUST_PROXY: "1"
+      PUBLIC_URL: https://${DOMAIN:-localhost}
+      # Stripe billing. Leave STRIPE_SECRET_KEY empty to change plans only by
+      # hand (dist/scripts/setPlan.js); see deploy/README.md.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-}
+      STRIPE_PRICE_MAX: ${STRIPE_PRICE_MAX:-}
+      STRIPE_PORTAL_CONFIGURATION: ${STRIPE_PORTAL_CONFIGURATION:-}
+      STRIPE_AUTOMATIC_TAX: ${STRIPE_AUTOMATIC_TAX:-false}
     depends_on:
       db:
         condition: service_healthy

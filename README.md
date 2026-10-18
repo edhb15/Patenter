@@ -74,12 +74,11 @@ credits left uses up what is left. When an action fails on Patenter's side,
 its credits are given back. Users see their balance in the app and on
 **Plan & credits** (`/app/account/`).
 
-Online payment isn't connected yet. Move an account to another plan with:
-
-```sh
-docker compose exec auth node dist/scripts/setPlan.js user@example.com pro
-# or, in development: cd auth && npm run set-plan -- user@example.com pro
-```
+Paid plans are sold through Stripe: **Upgrade** opens Stripe Checkout, and
+subscribers change plan, cancel or update their card in Stripe's customer
+portal. Stripe webhooks keep each account's plan in step with its
+subscription. Setup, going live and day-to-day running are described in
+[deploy/README.md](deploy/README.md).
 
 Plan allowances and prices are in `auth/src/credits/plans.ts`; what each
 action costs is at the top of `backend/server.js`.
@@ -98,9 +97,10 @@ Everything is served from a single domain:
 website, routes `/auth` and `/api`, and obtains HTTPS certificates
 automatically (`deploy/Caddyfile`).
 
-The auth service also keeps each account's plan and credit balance. The API
-charges credits through the auth service's `/internal/credits/*` routes,
-which Caddy never forwards and which require a shared `INTERNAL_API_SECRET`.
+The auth service also keeps each account's plan, credit balance and Stripe
+subscription (Stripe calls it at `/auth/billing/webhook`). The API charges
+credits through the auth service's `/internal/credits/*` routes, which Caddy
+never forwards and which require a shared `INTERNAL_API_SECRET`.
 
 **Security.** Sign-in uses short-lived access tokens kept in memory plus a
 rotating refresh token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie.

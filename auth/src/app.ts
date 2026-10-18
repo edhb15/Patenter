@@ -6,6 +6,7 @@ import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
 import authRouter from "./routes/auth";
 import internalRouter from "./routes/internal";
+import billingRouter, { stripeWebhook } from "./routes/billing";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -24,7 +25,6 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json({ limit: "10kb" }));
 app.use(
   pinoHttp({
     logger,
@@ -37,10 +37,20 @@ app.use(
   })
 );
 
+// Before express.json(): Stripe's signature covers the raw request body.
+app.post(
+  "/auth/billing/webhook",
+  express.raw({ type: "application/json", limit: "1mb" }),
+  stripeWebhook
+);
+
+app.use(express.json({ limit: "10kb" }));
+
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/auth/billing", billingRouter);
 app.use("/auth", authRouter);
 app.use("/internal", internalRouter);
 
